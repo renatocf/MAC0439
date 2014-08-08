@@ -1,0 +1,225 @@
+* O que é um banco de dados?
+    - Banco de dados: coleção de dados relacionados
+    - Dados: fatos conhecodos que podem ser regitrados e que possuem
+             significado implícito
+
+* Propriedades implícitas de um BD
+    1. Representar (geralmente!) algum aspecto do mundo real
+       = minimundo ou UoD (Universo do DIscurso)
+       As mudanças no minimundo são refletidas no BD
+    
+    2. Ser uma coleção lógica e coerente de dados com algum significado
+       inerente.
+       Uma coleção "aleatória" de dados não é um BD!
+    
+    3. Ser projetado, construído e povoado com dados que possuem um 
+       objetivo específico.
+       Um BD deve possuir um grupo provável de usuários e algumas
+       aplicações pré-concebidas, nas quais esses usuários estão 
+       interessados.
+    
+    Joaquim Silva                   | abc 1024
+    R. Iniquirim, 321               |     banana
+    (11) 3750-6321                  |
+                                    |
+    Se estivesse numa lista, seria  | Os dados não têm estrutura ou 
+    como um BD                      | significado implícito - não é 
+                                    | um BD
+
+* Bancos de dados
+    - Resumindo: umBD possui alguma FONTE (de onde os dados são
+      derivados), algum grau de interação com eventos do mundo real
+      e um PÚBLIO que está ativamente interessado no conteúdo do BD
+    
+    - Outras características:
+        - BDs têm complexidade e tamanho variáveis
+          (ex: Amazon.com - dados de mais de 20 milhões de livros,
+                 (2007)     CDs, DVDs, jogos eletrônicos, etc.
+                            Total de 2 terabytes de memória
+               Facebook   - cerca de 2.5petabytes de dados de usuários
+                 (2009)     + 15 terabytes/dia
+               eBay(2009) - cerca de 6.5 petabytes de dados dos usuários 
+                            + 50 terabytes/dia
+               LHC        - 25 petabytes/ano + 1 petabyte de dados/dia
+                            100 petabytes armazenados desde o início
+                            do projeto)
+        - BDs podem ser informatizados ou mantidos manualmente
+          (ex: gerenciamento de biblioteca - em papel ou digital)
+    
+    - Um BD informatizado pode ser criado e mantido por:
+        - Um grupo de programas de aplicação (criados especificamente
+          para essa tarefa)
+        - um sistema de gerenciamento de bano de dados (SGBD)
+          (ferramenta genérica, com funcionalidades genéricas, que
+          pode lidar com diferentes domínios e têm propósito geral)
+
+* Sistema Gerenciador de Banco de Dados (SGBD)
+    - É um sistema de sogtware de propósito gral que facilita o processo
+      de definição, construção, manipiulação e compartilhamento de BDs
+      entre vários usuários e aplicações.
+    - Definir um BD: especificar os tipos, as estruturas e as
+      restrições para os dados que serão armazenados no BD
+    - Construir um BD: armazenar os dados em algum meio de 
+      armazenamento (controlado pelo SGBD)
+    - Manipular um BD: realizar funções como consultas so BD para
+      recuperar dados específicos, atualizr o BD para refletir 
+      mudanças no mini-mundo, etc.
+    - Compartilhar um BD: permitir que múltiplos usuários e 
+      programas acessem-no simultaneamente.
+
+* Outras funções importantes de um SGBD
+    
+    - Proteger os dados: contra galhas de hardware ou software e contra
+      acessos não autorizados ou maliciosos.
+      É possível definir permissões de acesso e modificação para cada
+      usuário, dependendo de onde estiver o banco.
+    
+    - Manter os dados por um longo período de tempo: permitindo que o
+      sistema evolua acompanhando as mudanças dos requisitos ao longo 
+      do tempo.
+      Um BD precisa ter suporte à EVOLUÇÃO do Banco de Dados - tanto
+      no nível de dados quanto na arquitetura.
+
+* Sistema de Bancos de Dados - Banco de Dados + SGBD
+    
+                        Usuários/Programadores
+                                 ↓
+         .------------------------------------------------.
+         | Sistema de Bando de Dados                      |
+         |       .----------------------------------.     |
+         |       | Programas da aplicação/consultas |     |
+         |       '----------------------------------'     |
+         |                        ↓                       |
+         | .--------------------------------------------. |
+         | | Software SGBD                              | |
+         | |        .----------------------------.      | |
+         | |        | Software para processar as |      | |
+         | |        |    consultas/programas     |      | |
+         | |        '----------------------------'      | |
+         | |                      ↓                     | |
+         | |           .-----------------------.        | |
+         | |           | Software para acessar |        | |
+         | |           | os dados armazenados  |        | |
+         | |           '-----------------------'        | |
+         | |                ↓             ↓             | |
+         | | .---------------------.  .---------------. | |
+         | | |  Armazenamento com  |  | Armazenamento | | |
+         | | | as definições do BD |  |    com o BD   | | |
+         | | |     (metadados)     |  '---------------' | |
+         | | '---------------------'                    | |
+         | '--------------------------------------------' |
+         '------------------------------------------------'
+
+* Transações
+    - Ações de leitura, escrita e modificação que podem ser feitas
+      sobre os dados do Banco de Dados.
+    - Mais à frente, veremos que existe uma ATOMICIDADE das transações.
+
+* Banco de dados x processamento de arquivos tradicional
+    - No processamento de arquivos tradicional: cada usuário define
+      e implementa os arquivos necessários para uma aplicação específica
+      (como parte da aplicação)
+      
+      Prolema: possível redundância na definição e armazenamento de
+      dados - desperdício de espaço e trabalho redundante na manutenção
+      de dados comuns a mais de uma aplicação
+    
+    - Nos bancos de dados: unico repositório é acessível
+
+* Outras características importantes dos bancos de dados
+    - Natureza auto-descritiva (metadados)
+      Temos os tipos separados.
+    
+    - Isolamento entre programas e dados, e abstração de dados
+      É possível ABSTRAIR o armazenamento dos dados (fisicamente) 
+      quando comparado com a real representação. Essa separação
+      da estrutura dos dados x estrutura da aplicação colabora
+      em fazer o desacoplamento dos dois programas. Ao usar um 
+      SGBD, temos uma interface (representação abstrata) para 
+      acessar os dados.
+      
+      Abstração de dados: mecanismos que permitem separar a 
+      representação dos dados com relação a como eles são acessados
+      para o usuário.
+    
+    - Suporte a visões múltiplas de dados
+      Os SGBDs permitem que uma parte ou outra dos dados sejam 
+      vistos. O projetista do Banco de Dados pode ver apenas um
+      subconjunto dos dados, eliminando o trabalho do usuário de
+      ignorar o que não for relevante a ele.
+      
+    - Compartilhamento de dados e processamento de transações
+      multiusuários
+
+* Vantagens do uso de um SGBD
+    1. Controle de redundâncias
+       Ao realizar a normalização do banco, queremos controlar as 
+       redundâncias. Porém, o processo pode fazer com que haja
+       muitos joins entre as tabelas dos bancos de dados. As 
+       redundâncias, se utilizadas de maneira adequada, podem 
+       ser uma forma de otimização.
+    
+    2. Restrição do acesso não autorizado
+       É possível criar um sistema de permissões para que usuários
+       tenham ou não acesso a certos serviços.
+    
+    3. Armazenamento persistente para objeto de programas e 
+       estruturas de dados
+    
+    4. Estruturas de armazenamento e técnicas de busca para o 
+       processamento eficiente de consultas
+    
+    5. Mecanismos de backup e recuperação
+    
+    6. Múltiplas interfaces de usuário
+       Há várias interfaces possíveis: as aplicações, criadas sobre
+       o SGBD, a interface de linha de comando do SGBD, etc.
+    
+    7. Capacidade de representação de relacionamentos complexos entre
+       dados
+    
+    8. Imposição de restrições e integridade
+       Restrições:  Por exemplo, impor que um número esteja em um 
+                    certo intervalo. O SGBD GARANTE que tenhamos
+                    essas modificações feitas.
+       Integridade: Todos os dados do SGBD respeitam suas restrições
+                    (estejam consistentes)
+      
+       De forma geral, qualquer regra/limitação que seja inerente
+       ao dado - independentemente da aplicação - deve estar junto
+       aos dados no SGBD, para que regras não implementadas em 
+       alguma aplicação não gerem inconsistências ao lidar com
+       dados compartilhados.
+    
+    9. Possibilidade de reduzir dados e executar ações por meio de
+       regras
+    
+    - Implicações adicionais:
+        1. Potencial para garantir padrões
+        
+        2. Redução no tempo de desenvolvimento de aplicações
+           (aplicações usam uma estrutura já definida, e o 
+           desenvolvedor não precisa lidar com isso)
+        
+        3. Flexibilidade
+           (abstração de dados/independência de aplicação e BD)
+        
+        4. Disponibilidade de informações atualizadas
+           (sincronização de atualizações)
+        
+        5. Economias de escala
+           (a quantidade de dados é facilmente escalável)
+
+* Analisando a viabilidade do uso de um SGBD
+    - Os custos (de tempo e dinheiro) envolvidos no uso de um SGBD
+      se relacionam a:
+        1. Os altos investimentos iniciais em hardware, software 
+           e treinameto
+        2. A generalidade que o SGBD fornece para a definição e o
+           processamento de dados
+        3. O esforço adicional necessário para prover segurança,
+           controle de corrência, recuperação e integridade de dados.
+    
+* Quando é melhor NÃO usar um SGBD
+    - O uso de arquivos convencionais é mais aconselhado quando
+      temos apenas um usuário e uma aplicação, utilizando o SGDB.

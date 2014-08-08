@@ -1,0 +1,87 @@
+* Característica fundamental dos BDs
+    - Oferecer abstração de dados, ocultando detalhes sobre a organização
+      e armazenamento dos dados (detalhes esses que são desnecessários
+      para a maioria dos usuários dos BDs)
+    
+    - A abstração é feita por meio de modelos de dados
+
+* Especidicação de operações em BDs
+    - ALémdas opeações básicas, agora é comumque modelos de dados
+      ofereçam mecanismos para a especificação do aspecto dinâmico
+      (= comportamento) de uma aplicação de BD.
+    - O projetista de BD pode especificar opeações definidas pelos
+      usuários, permitidas sobre os objetos do BD.
+    - Esses mecanismos sãoparticularmente importantes para os modelos
+      de dados de objetos, mas também vêm sendo usados em modelos
+      mais tradicionais - como relacional
+
+* Categorias de modelos de dados
+    - Conceitual/Alto nível: 
+      Possuem conceitos que descrevem os dados como os usuários os 
+      percebem.
+      
+    - Dados físicos/Baixo nível: 
+      Possuem conceitos que descrevem os detalhes de como os dados 
+      estão armazenados no computador, com informações como o formato 
+      de um registro, as ordenações, registros e caminhos de acesso.
+      
+    - Modelos de dados representativos/Implementação:
+      Faixa mediana, entre físico e conceitual. É inteligível por
+      quem implementa e faz definições na máquina. É a categoria
+      em que estão o modelo relacional e orientado a objetos.
+
+* Modelo de dados conceitual
+    - Usa o conceito de entidade e relacionamento
+    - O modelo entidade-relacionamento (MER) é o mais comum 
+
+* Modelo de dados representativos
+    - Modelo de dados relacional, hierárquico, em redes, orientado
+      a objetos
+
+* Descrição do BD x DB de fato
+    - Esquema do BD
+        - É a descrição do BD
+        - É definido durante a fase de projeto, e é representado 
+          pelo diagrama
+    
+    - Estado do BD (snapshot ou conjunto de instâncias)
+        - Toda inserção ou remoção de um registro, ou alteração do
+          valor de um item de dado gera uma mudança de estado no BD
+        - O SGBD é parcialmente responsável por garantir que cada
+          novo estado do BD é um estado válido (= que respeita a
+          estrutura e as restrições definitas no esquema)
+
+* Arquitetura de 3 camadas (3-schema)
+    - Objetivo: separa as aplicações de usuários do 
+                banco de dados físico
+    
+    
+    Camada externa
+        |
+        | Mapeamento da camada externa/conceitual
+        |
+    Camada conceitual
+        | 
+        | Mapeamento da camada conceitual/interna
+        | 
+    Camada interna
+
+* Linguagens do SGBD
+    - Linguagem de Definiçãodos Dados (DDL - data definition languege)
+        - Em SGBDs que usam modelos de dados onde a separação entre
+          os níveis nãoé muito específica, a DDL é usada pelo DBA
+          e pelos projetistas do BD para definir os esquemas 
+          conceitual e interno para o BD.
+        - Em SGBDs que mantêm uma clara separação entre esquema 
+          conceitual e físico, às vezes existe uma linguagem 
+          específica para determinar a estrutura interna - não
+          a estrutura apenas.
+    
+    - Linguagem de Manipulação de Dados (DML - Data Manipulation
+      Language)
+        - Fornecida para o SGBD para a manipulação de dados
+        - Fornece operaçẽos típicas como inserção, alteração
+          e remoção de dados
+    
+    - Linguagem de Definição de Visões (VDL - View Definition Language)
+        - A VDL permite epecidicar visões de usuários e seus usos

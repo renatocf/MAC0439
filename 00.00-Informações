@@ -1,0 +1,60 @@
+Página do CEC
+===============
+* Senha para inscrição: lab2014bd
+
+Aulas
+=======
+* Sala 101 (teórica) e sala 106 do CEC.
+* Quartas-feiras: das 10h às 11h40 no CEC
+* Sextas-feiras: a partir das 8h30 no CEC
+
+Ementa
+========
+
+* Ferramentas de apoio para o desenvolvimento do projeto lógio e físico
+  de bano de dados.
+
+* Especificação e implementação de um banco de dados com seus
+  procefimentos de inserção, eliminação,atualização e consulta. →
+  Projeto
+
+* Integração de aplicações a bancos de dados e arcabouços para a
+  persistÊncia de dados → Projeto
+
+* Principais técnicas para sintonia fina de bancos de dados relacionais
+
+* Introdução a sistemas de bancos de dados não-relaionais (populares 
+  BDs NoSQL) → Projeto
+
+Critérios de avaliação
+========================
+* Listas de exercícios (feitas durante a aula e entregues no final dela,
+  ou "desafios" para serem resolvidos fora da aula).
+* Duas provas (avaliação individual).
+* Projeto a ser desenvovido ao longo do semestre, composto por 4 fases
+  avaliadas de forma independente.
+    - Fase 1: Análise de requisitos + modelo conceitual do BD
+    - Fase 2: Modelo lógico e físico do BD
+    - Fase 3: Aplicação integrada ao BD + persistência de dados
+    - Fase 4: Funcionalidades extras (uso de BDs não-relacionais)
+
+* Cálculo da média final
+* MP      = média das provas (aritmética)
+* ME      = média das listas de exercícios (aritmética)
+* NProj_i = nota da parte i do projeto
+* MProj   = (NProj_1 + 2*NProj_2 + 2*NProj_3 + NProj_4)
+* Média   = (MProj + MP + ME)
+
+Datas
+=======
+* 24/09/14 (quarta) - definição de grupos e temas para o projeto
+* 26/09/14 (sexta)  - P1
+* 16/11/14 (quarta) - P2
+* 28/11/14 (sexta)  - Apresentação dos trabalhos dos grupos (parte 1)
+* 03/12/14 (quarta) - Apresentação dos trabalhos dos grupos (parte 2)
+* 05/12/14 (sexta)  - Prova sub "fechada" (só faltas justificadas)
+
+* 05/10/14 - Fase 1
+* 19/10/14 - Fase 2
+* 16/11/14 - Fase 3
+* 03/12/14 - Fase 4

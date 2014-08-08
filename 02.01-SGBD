@@ -1,0 +1,94 @@
+Arquitetura de SGBD
+=====================
+
+* SGBDs centralizados
+    - Arquitetura usadas nos primeiros SGBDs
+    - Computadores mainframes: ofereciam o processamento principal para
+      todas as funções do sistema (programas de aplicação e interface
+      com o usuário + SGBD)
+    - Usuários acessam esses sitemas por meio de terminais "burros" (com
+      capacidade de exibição, mas sem processamento)
+
+* Arquitetura cliente/servidor básica
+    - Desenvolvido para lidar com um grande número de PCs
+    - Ideia geral: definir servidores especilizados, com funcionalidades
+      específicas
+    - Máquinas clientes oferecem aos usuários as ingerfaces apropriadas
+      para utilizar esses servidores
+    
+                     Cliente    Cliente     Cliente     Cliente
+        [ Rede ]-----------------------------------------------------
+                    Servidor        Servidor         Servidor
+                  de arquivos     de impressão   de Banco de Dados
+
+* Arquitetura cliente/servidor de duas camadas para SGBDs
+    - Componences inicialmente movidos para o lado do cliente:
+      interface com o usuários e os programs de aplicação
+    - SQL (linguagem adrão para os SGBDs relacionais)
+        - servidor: servidor de consulta ou servidor de transação
+          (funcionalidades relacionadas ao processamento da SQL)
+        - ao acessar o SGBD, o cliente estabelece conexão com o servidor
+    - Padrão Conectividade de Banco de Dados Aberta (ODBC)
+        - API que permite que programas clientes se comuniquem um SGBD 
+          de forma padronizada
+        - A maioria dos "fabricantes" de SGBDs disponibiliza DRIVERS
+          ODBC dos seus sistemas
+    - Variação usada em SGBDs de objetos
+        - O nível do cliente ode também se ocupar de funcionalidades do
+          SGBD, como dicionário de dados, otimização de consulta,
+          controle de concorrência e recuperação entre vários
+          servidores; estruturação de objetos complexos; interação do
+          SGBD com as linguafens de programação; etc
+        - O nível do servidor se ocupa, por exemplo, das funcionalidades
+          diretamente relacionadas àmanipudação das páginas no disco,
+          controle de concorrência local e recuperação
+        - Nessa abordagem, aumenta-se o ACOPLAMENTO entre os clientes e
+          o SGBD
+
+* Arquiteturas de 3 camadas para aplicações Web
+    - Usam uma camada intermediarioa entre o cliente e o servidor para
+      aplicações Web.
+    - Serve bem para modelagens seguindo a arquitetura MVC
+      (model-viewer-control, modelo-visualização-controle)
+    
+             Camada         |        Web          |  Generalização
+      ================================================================
+             cliente        | GUI, Interface Web  |    Camada de 
+                            |                     |   apresentação
+      ----------------------|---------------------|-------------------
+      Servidor de aplicação |   Programação de    |     Camada de 
+               ou           | aplicação, páginas  | lógica do negócio
+          Servidor Web      |        web          |
+      ----------------------|---------------------|-------------------
+          Servidor de       | Sistema Gerenciador | Camada de serviços
+         Banco de Dados     |  de Banco de Dados  | de bancos de dados
+
+* Classificação dos SGBDs
+    - Critérios normalmente utilizados
+        - Propósito: uso gerale usoespecífico
+        
+        - Modelo de dados usado: relacional, de objetos, redes,
+          hierárquivos, XML, de grafo, etc.
+        
+        - Número de usuários: monousuário (admite apenas um usuário
+          de cada vez) ou multiusuário (admitem múltiplos usuários
+          simultaneamente)
+        
+        - Custo e "Liberdade": código aberto/gratuíto (PostgreSQL
+          e MySQL/MariaDB), código fechado/pago (como MS SQL Server,
+          Sybase, Oracle)
+        
+        - Número de locais sobre o qual está distribuído:
+            - SGBD centralizado: dados armazenados em um único
+              computador
+            - SGBD distribuído: pode ter dados e/ou software do SGBD
+              distribuído por vários locais, conectados por uma rede.
+              Pode ser homogêneo (quado todos os locais possui ummesmo
+              software de SGBD) ou heterogêneo (quando cada local possui
+              um software diferente)
+            - SGBD federado - middleware que acessa vários bancos de
+              dados autônomos, armazenados em SGBDs heterogêneos
+              (datawarehouse)
+        
+        - Tipos de caminhos de acesso para armazenar arquivos
+          (ex:estrutura de arquivos invertidos)

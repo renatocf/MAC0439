@@ -1,0 +1,230 @@
+Projeto de Bancos de Dados
+============================
+
+* Envolve as seguintes etapas:
+    1. Levantamente e análise dos requisitos
+    2. Projeto conceitual
+    3. Projeto lógico
+    4. Projeto físico
+
+* Fase 1: Levantamento e análise dos requisitos
+    - Registra concisamente os requisitos dos usuários com relação aos
+      dados (restrições, tipos, etc).
+    - Define requisitos funcionais conhecidos das aplicações
+        - operações/transações empregadas no BD
+    - Não existem técnicas bem definidas: pode-se aplicar as mesmas
+      técnicas de Engenharia de Software
+    - Sobre os requititos:
+        - Podiam ser feitos criando um Diagrama de Fluxo de Dados
+          (Ex:
+            
+                        Requisito Funcional    ----------
+         Agente externo    .---------.          clientes
+          ...........     /           \   ↗    ----------
+          | CLIENTE | →   | REGISTRAR |        repositórios
+          ''''''''''' ←   |  PEDIDO   |        de dados
+                          \           /   ↘    ----------
+                           `---------´          pedidos
+                                               ----------
+    
+* Fase 2: Projeto conceitual
+    - Descreve em alto nível, com mais detalhes, os dados
+    - Principais linguagens de descrição:
+        - UML (Universal Modeling Language)
+        - ERM (Entity Relationship Model)
+
+* Fase 3: Projeto Lógico
+    - Mapeamento para as estruturas de dados
+        - Modelo relational
+        - Modelo objeto-relacional
+    - Refinamento do esquema:
+        - Etapa opcional
+        - Identifica problemas em potencial
+        - Ex: no modelo relaional, é necessária umaetapa de normalização
+          das relações (que tem por objetivo evitar esquemas de BDs em
+          que anomaliasde alterações de dados possam ocorrer)
+
+* Fase 4: Projeto Físico
+    - Finalidade:otimizar o desempenho das operaçõesde consulta e
+      manipulação dosdados
+    - Pode até mesmo modificar se será distribuído, e quais serão
+      os índices
+    - Muito apegado à estrutura do sistema
+
+* Modelo conceitual e abstração de dados
+    - A modelagem conceitual de dados está relacionada à representação
+      dos dados por meio de um conjunto de abstrações
+    - Abstrações têm:
+        - Estrutura: do ponto de vista estrutural, abstrações são
+          detalhes que eliberadamente se omitem numa dada visão de
+          implementação para facilitar a visão global do tópico em
+          questão
+
+* Modelo Entidade-Relacionamento (ER)
+    - Criado por Peter Chen, em 1976
+    - É simples e de interpretação intuitiva
+    - Representado pelo Diagrama Entidade Relacionamento (DER)
+      ou com a notação de UML.
+    - Constitui-se de 3 elementos principais:
+        
+        - Entidade: "algo" do mundo real, com uma existência
+          independente. Pode ter uma existência física ou conceitual.
+        
+        - Atributos:
+            - Propriedades particulares que descrevem uma
+              entidade. Cada entidade terá um valor para seu atributo.
+            - Dois tipos principais:
+                - Compostos: podem ser divididos em partes menores
+                    - Seu valor é dado pela concatenaçaõ dos atributos
+                      simples que o compõem.
+                    - Devem ser usados quando o usuário algumas vezes
+                      se refere ao atributo omo um grupo, mas em outras
+                      se refere a um de seus componentes.
+                - Simples/atômicos: os atrbutos que não são divisíveis
+                
+                - Valoração:
+                    - Monovalorado  (apenas 1 valor)
+                    - Multivalorado (múltiplos valores)
+                
+                - Armazenamento:
+                    - Atributo derivado: é derivado a partir de 
+                      outro(s) atributo(s0 ou entidade(s)
+                      relacionado(s)
+                    - Atributo armazenado: os que não são derivados
+                
+                - Complexo:
+                    - Atributos compostos e multivalorados
+                
+                - Notação (elipses no Diagrama Entidade-Relacionamento)
+                    - Composto (sublinhado no principal, e pode estar
+                      agrupado em um tracejado OU numa hierarquia)
+                        .--------------------.    
+                        : <estado>  <número> :        <registro>
+                        :                    :         ''''''''
+                        :      <registro>    :        /         \
+                        :       ''''''''     :    <estado>    <número>
+                        '--------------------'
+                    
+                    - Multivalorado (elipse dupla)
+                        <<telefone>>
+                    
+                    - Derivado (elipse tracejada)
+                        --idade-- (a partir da data de nascimento)
+                
+                - Valor NULL (nulo)
+                    - É um valor especial, usadoquando a entidade 
+                      nãopossui umvalor para um atributo
+                    - O NULL serve tanto para indicar que um atributo
+                      NÃO SE APLICA a uma dada entidade, quanto para
+                      indicar que o valor para um atributo de
+                      uma dada entidade é DESCONHECIDO.
+                    - "DESCONHECIDO" se aplica a dois casos:
+                        - quando se sabe que existe, mas está faltando
+                          (ex: altura)
+                        - quando nãoé sabido se o valor existe ou não
+                          (ex: telefone residencial)
+                
+                - Domínio: espaço de valores sobre o qual um atributo
+                  pode ter seus valores (em geral, não têm representação
+                  no Diagrama Entidade-Relacionamento)
+                  (ex: números inteiros não-negativos)
+        
+        - Tipo de entidade
+            - Um tipo de entidade define um conjunto de entidades
+              que possuem os mesmos atributos
+            - Conceitos importantes:
+                - Atributo-chave (restrição de exclusividade): é 
+                  um atributo que identifica univocamente cada
+                  instância da entidade
+                - Chave composta: formada por diversos atributos,
+                  cuja combinação dos valores é disistinta para cada
+                  entidade. Umachave composta deveser mínima, no
+                  sentido de que todos os atributos componentes
+                  devem ser garantidos para manter a unicidade.
+            
+            - Exemplos:
+                TIPO DE           EMPREGADO              EMPRESA
+                ENTIDADE      Nome,Idade,Salário    Nome,Sede,Filiais
+                
+                CONJUNTO DE  
+                ENTIDADE            * e1                 * e2
+                (EXTENSÃO)    John Smith,30,80k     Bubba Gump,NY,NULL
+        
+        - Relacionamento
+            
+            - Geralmente nomeado usando verbos
+
+            - Representação no DER (com losângulo):
+                        Funcionário --- /\ --- Empresa
+                                        \/
+                                    TRABALHA_EM
+            
+            - Propriedades:
+                - Grau: número de entidades que participam do 
+                  relacionamento.
+                    - grau 2: relacionamento binário (mais frequente)
+                    - grau 3: relacionamento ternário
+                    - ... (menos comuns)
+                
+                - Nome do papel: indica o papel que cada tipo de 
+                  entidade desempenha em um relacionamento (opcional,
+                  em geral, mas útil para autorrelacionamentos)
+                  - Ex: trabalhador
+                                          
+                                             TRABALHA_EM
+                        Funcionário ------------ /\ ----------- Empresa
+                                    trabalhador  \/  empregador
+                
+                - Autorrelacionamento: Relacionamento de uma entidade
+                  com si própria.
+                  - Ex: chefe
+                                           GERENCIA
+                        Funcionário --------- /\
+                             |       chefe    \/
+                             '----------------'
+                              empregado
+                
+            - Restrições:
+                - Cardinalidade: número máximo de participações.
+                  Pode ser 1:1, 1:N, M:N
+                - Participação: número mínimo de participações.
+                  Pode ser:
+                  - Total (precisa ter pelo menos uma instância).
+                    Representado por uma linha dupla no DER.
+                  - Parcial (pode não ter instâncias).
+                    Representado por uma linha simples no DER.
+                - Notação alternativa no DER: (min,max).
+                  Aparece em cada ligação do losângulo do 
+                  relacionamento com a sua entidade característica.
+            
+            - Atributos: também podem ter atributos, específicos
+              do relacionamento. 
+              - Quando há cardinalidade 1, é possível colocar o 
+                atributo em alguma das entidades do relacionamentos. 
+                Porém, no modelo conceitual, é melhor deixá-lo no 
+                relacionamento.
+        
+        - Entidade-fraca
+            - Uma entidade que depende de alguém
+            - Representado com um quadrado duplo no DER
+            - Tem um relacionamento IDENTIFICADOR, que associa
+              a chave do funcionário com alguma CHAVE PARCIAL
+              da entidade-fraca
+            - O relacionamento identificador é TOTAL para a
+              entidade-graca
+    
+    - Exemplo geral de Diagrama Entidade Relacionamento
+        
+                             GERENCIA
+            ..==================/\-------------------.
+            ||                  \/                   |
+            ||                                       |
+           1||1      1     TRABALHA_EM        M     1|1
+        FUNCIONÁRIO ============/\------------- DEPARTAMENTO
+        |- <salário> N          \/            1 |- <nome>
+        |- <endereço>                           |   ''''
+        |- <nome>                               |- <número>
+        |- <data_nasc>                          |   ''''''
+        |- --idade--                            '- localização
+        '- <CPF>
+            '''
