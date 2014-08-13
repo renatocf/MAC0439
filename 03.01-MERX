@@ -1,0 +1,124 @@
+Modelo Entidade-Relacionamento Extendido
+==========================================
+
+* O modelo entidade-relacionamento extendido (MERX) adiciona mais 
+  abstrações, criadas principalmente por novas necessidades vindas 
+  de orientação a objetos e aplicações específicas para certas áreas.
+* Abastrações:
+    - Abstração de especialização
+        - Usada quando uma entidade tem subconjuntos que possuiriam
+          atributos específicos, e seria interessante economizá-los
+          colocando-os apenas a um subconjunto.
+        - Também pode ser aplicado para quando apenas um subconjunto
+          de elementos da entidade participa de um relacionamento.
+        - Representado utilizando o símbolo de SUBCONJUNTO dentro 
+          do MERX:
+            
+                                .--------.
+                                |   E1   |
+                                '--------'
+                                    |  '- Atributo1
+                                   _|_
+                                  / d \ (círculo)
+                                  \___/
+                                  /   \
+                                /_/   \_\ (subconjunto)
+                                /       \
+                        .--------.      .--------.
+                        |   E2   |      |   E3   |
+                        '--------'      '--------'
+                        '- Atributo2    '- Atributo3
+        
+        - No círculo da representação, há duas possibilidade: que a 
+          especialização seja TOTAL (t = total) ou PARCIAL 
+          (o = overlapping)
+    
+    - Abastração de generalização
+        - Funciona exatamente como a especialização. Porém, seu
+          surgimento semântico é diferente: surge uma "entidade-pai"
+          a partir de atributos em comuns das "entidades-filha".
+        - Em alguns casos, muda-se a ordem do operador de "subconjunto"
+          para representar que a abstração foi gerada via generalização,
+          e não especialização. Porém, no livro do Navathe, mantém-se
+          a ordem para dar a ideia de subconjunto.
+    
+    - Abstração de união
+        - Funciona de forma parecida como quando temos uma entidade
+          sendo composta pela união de outras duas, seguindo uma notação
+          parecida com a abstração de especialização/generalização.
+    
+                                .--------.
+                                |   E1   |
+                                '--------'
+                                    |  |- Atributo1
+                                    |  '- Atributo2
+                                    |
+                                   |_| (união)
+                                   _|_
+                                  /   \ (círculo)
+                                  \___/
+                                  /   \
+                                 /     \
+                        .--------.      .--------.
+                        |   E2   |      |   E3   |
+                        '--------'      '--------'
+                        '- Atributo1    '- Atributo2
+    
+    - Abstração de agregação
+        - Serve para quando existe a necessidade de um "relacionamento
+          de relacionamento", ou membros de entidades que surgem APENAS
+          em alguns dos relacionamentos.
+        - De forma prática, surge uma "entidade-fraca" a partir de um
+          relacionamento triplo, não estando relacionada
+          obrigatoriamente.
+            
+                .-----------. faz_entrevista .---------.
+                | Candidato |-------/\-------| Empresa |
+                '-----------'       \/       '---------'
+                                    ||
+                             .--------------.
+                             |.------------.|   gera   .---------.
+                             || Entrevista ||----/\----| Emprego | 
+                             |'------------'|    \/    '---------'
+                             '--------------'
+        
+        - Notações alternativas (não disponíveis em ferramentas, 
+          na maior parte dos casos):
+            
+                Entrevista
+              .------------------------------------------.
+              | .-----------. faz_entrevista .---------. |
+              | | Candidato |-------/\-------| Empresa | |
+              | '-----------'       \/       '---------' |
+              '------------------------------------------'
+                                    |
+                                    |   gera   .---------.
+                                    '----/\----| Emprego | 
+                                         \/    '---------'
+                             
+                              faz_entrevista
+                .-----------.     .----.     .---------.
+                | Candidato |-----| /\ |-----| Empresa |
+                '-----------'     | \/ |     '---------'
+                                  '----' Entrevista
+                                    |
+                                    |   gera   .---------.
+                                    '----/\----| Emprego | 
+                                         \/    '---------'
+
+Ferramentas de apoio à modelagem conceitual
+=============================================
+* Geração de SQL a partir da modelagem de dados:
+    - EERCASE (UFPE/CIn)
+        - MER e MERX com notação usado no livro do Elmasi/Navathe
+    - PostgreSQL Database Modeler (PgModeler)
+        - Use um tipo de modelo que e uma mistura de modelagem conceitual 
+          e lógica
+        - Específico para BDs mantidos no PostreSQL
+    - MySQL Workbench
+        - Ampara a modelagem e administração de BDs
+        - Voltadas para BDs mantidos no MySQL
+
+* Ferramentas de puro desenho
+    - Diagram Editor (DIA)
+    - draw.io (ferramenta online)
