@@ -1,0 +1,105 @@
+Modelo Lógico
+===============
+
+* Para o projeto lógico, usaremos o modelo relacional, que considera
+  tudo como sendo RELAÇÕES (tabelas).
+* A representação como entidades e relacionamentos sendo todos relações
+  é ruim se projetos forem feitos diretamente a partir do modelo lógico,
+  pois nesse caso não há como definirmos os elementos do modelo e evitar
+  replicações no BD.
+
+* Restrições
+    - Implícitas (inerentes ao modelo relacional)
+        - Restrições de conjunto: não podem haver elementos repetidos
+          entre os elementos das relações.
+        - Restrições de domínio: atributos DEVEM pertencer ao seu
+          domínio definido.
+    
+    - Explícitas (podem ser expressas diretamente nos esquemas do modelo
+      de dados, mas decorrem de decisões explícitas do projeto)
+    
+        - Restrições de chave:
+            - Não existem duas tuplas que possuam a mesma combinação de
+              valores para todos os seus atributos.
+            - Qualquer subconjunto que identifica unicamente uma tupla
+              é chamado de SUPERCHAVE.
+            - A menor SUPERCHAVE é chamada de CHAVE.
+            - Uma delas, escolhida para ser o identificador no modelo
+              relacional, é conhecida como CHAVE PRIMÁRIA.
+            - As outras CHAVES CANDIDATAS são conhecidas como CHAVES
+              SECUNDÁRIAS ou CHAVES UNIQUE (no jargão da linguagem SQL).
+          
+        - Restrições em NULL:
+            - Essa restrição, definida sobre atributos, especifica se
+              valores NULL são ou não permitidos.
+        
+        - Restrições de integridade de entidade:
+            - Estabelecem que nenhum valor de chave primária pode ser
+              NULL. Ter valores NULL para uma chave primária implica
+              em não podermos identidicar alguma(s) tupla(s).
+        
+        - Restrições de integridade referencial:
+            - Declaram que uma tupla em uma relação que faz referência a
+              uma outra relação deve se referir a uma tupla existente
+              nessa relação. Essa referência é feita por meio de CHAVES
+              ESTRANGEIRAS.
+            - CHAVES ESTRANGEIRAS têm a garantia de possuírem um valor
+              que é igual ao valor da chave da tupla de alguma relação.
+    
+    - Restrições semânticas (também chamados de regras de negócio, que
+      nem sempre podem ser expressas diretamente)
+        - Mecanismos de implementação:
+            - Programas de aplicação
+            - Triggers (gatilhos), no SGBDR
+                - Disparam ações todas as vezes que algum tipo de ação
+                  associada é realizada.
+            - Assertions (afirmações), no SGBDR
+                - Cria certas regras, mais simples, que podem ser
+                  associadas diretamente às relações.
+
+* Banco de dados relacional
+    - Esquema de dados relacional é um esquema de relações e um esquema
+      de integridade.
+    - O BD relacional estpa com integridade se tiver todos os seus
+      elementos respeitando as restrições do modelo relacional.
+
+* Operações do modelo relacional
+    - Duas operações principais: recuperaçãoe atualizações
+    - Recuperações:
+        - São especificadas por meio de operações de Álgebra Relacional
+          - que provê dunfamentos formais para as operações de consulta
+          dentro do modelo relacional.
+        - O Cálculo relacional também pode ser útil para definir
+          operações usando Lógica de Primeira Ordem.
+    - Atualizações:
+        - Operação de inserção:
+            - Oferece uma lista de valores de atributo para que uma nova
+              tupla t possa ser inserida em uma relação R.
+            - Pode violar qualque tipo de restrições (domínio, 
+              integridade de entidade, de chave e de integridade
+              referencial).
+            - Se uma inserção violar uma ou mais restrições, a ação
+              padrão do SGBDR é rejeitar a inserção. Ela pode, porém,
+              ser MODIFICADA, alterando as relações.
+        
+        - Operações de atualização:
+            - Pode violar apenas a integridade referencial (se a tupla
+              que está sendo expluída for referenciada por chaves
+              estrangeiras de outras tuplas).
+            - Opções disponíveis para o tratamento de uma violação:
+                - Restrict: rejeita a exclusão (opção padrão nos
+                  SGBDR).
+                - Cascade: propada a exclusão removendo tuplas que 
+                  referenciam àquela que está sendo retirada.
+                - Set NULL ou set default: modifica os valores de 
+                  atributo que referenciam a causa da violação.
+        
+        - Operações de alteração:
+            - Requer a espeificação de umacondição osbre os atrivutos
+              darelação para relacionar a tupla (ou tuplas) a serem
+              modificadas.
+            - Se o atributo a ser alterndo não faz parte de uma chave
+              primária nem de uma chave estrangeira, em geral só pode
+              causar problemas de domínio.
+            - A alteração de uma chave primária/estrangeira gera
+              problemas semelhantes oas da inserção/remoção.
