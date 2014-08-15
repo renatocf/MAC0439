@@ -1,0 +1,114 @@
+Mapeamento de Modelo Entidade-Relacionamento para Relacional
+==============================================================
+
+                 .- Nome
+                 ||- Pnome
+                 ||- Unome  trabalha_para
+                 |'- Minicial   /\
+                 |- Datanasc   /  \    .- Número_funcionarios
+                 |- Salario    \  /    |- <<localizações>>
+                 |- Sexo      //\/\\   |- <Número>
+                 |- <CPF>    //    \\  |- <Nome>
+                .-------------.     .--------------.
+                | Funcionario |     | Departamento |
+                '-------------'     '--------------'
+                  |    |      \    //
+                  | /\ |      1\/\//1
+                 1|/  \|N      /  \_
+                   \  /        \  / ' Data_inicio
+                    \/          \/
+                supervisão   gerencia
+    
+- Entidade-forte:
+    
+    Funcionario
+    ¨¨¨¨¨¨¨¨¨¨¨
+    <CPF>,DataNasc,Endereço,Salario,Sexo,Pnome,Minicial,Unome,Dnum,
+    CPFsupervisor(c.e)
+    ^ Auto-relacionamento
+    
+    Deparnamento
+    ¨¨¨¨¨¨¨¨¨¨¨¨
+    Nome,<Numero>,CPF_gerente(c.e),Dinicio
+                  ^ Relacionamento 1:N
+    
+    Projeto
+    ¨¨¨¨¨¨¨
+    Nome,<Numero>,Localiação,Dnum(c.e)
+                             ^ Relacionamento 1:N
+    
+- Entidade-fraca
+    
+    Dependente
+    ¨¨¨¨¨¨¨¨¨¨
+    <CPF_funcionario,Nome>,Sexo,Data_nascimento,Parentesco
+    
+- Relacionamento M:N:
+    
+    Trabalha_em
+    ¨¨¨¨¨¨¨¨¨¨¨
+    <CPF_funcionaro(c.e),Pnum(c.e)>,horas
+
+Exemplo de relacionamento N-ário
+----------------------------------
+
+    Fornecedor ____N/\K____ Peça     Fornecimento
+                    \/            →  ¨¨¨¨¨¨¨¨¨¨¨¨
+                    |M               <CodF,CodProj,CodP>
+                    '- Projeto       As três chaves-estrangeiras 
+                                     são chave-primária.
+
+Mapeamento do MERX
+====================
+
+* Mapeamento de generalização/especialização: opções:
+    - 4 opções para o mapeamento:
+        - Opção A: Criação de relações para super e sub classes.
+                   Funciona para todos
+          
+          Funcionario
+          ¨¨¨¨¨¨¨¨¨¨¨
+          <CPF>,atributo1,atributo2
+
+          Secretária                Vendedor
+          ¨¨¨¨¨¨¨¨¨¨                ¨¨¨¨¨¨¨¨
+          <CPF(c.e)>,atr_sec1,...   <CPF(c.e)>,atr_ven1,...
+    
+        - Opção B: Criação de tuplas separadas completamente.
+                   Funciona para especialização total/disjunta.
+                   Causa replicação da ESTRUTURA, dificultando
+                   colocar novos atributos na superclasse.
+        
+          Carro
+          ¨¨¨¨¨
+          id_veículo,placa,perço,número_eixos,capacidade_peso
+        
+          Caminhão
+          ¨¨¨¨¨¨¨¨
+          id_veículo,placa,perço,número_eixos,capacidade_peso
+        
+        - Opção C: Criação de uma relação apenas, com atributos
+                   da superclasse e subclasse + um atributo para
+                   dizer qual é o tipo.
+                   Causa gasto de memória.
+                   Serve bem para o caso parcial/disjunta
+          
+          Funcionario
+          ¨¨¨¨¨¨¨¨¨¨¨
+          <CPF>,Pnome,Minicial,Unome,Data_nascimento,Endereço,
+          Tipo_Emprego,Velocidade_digitação_Grau_tec,Digitção
+          
+          
+        - Opção D: Criação de uma superclasse apenas, com atributos
+                   booleanos para classificar se existe um atributo
+                   para qual é os múltiplos tipos.
+                   Serve bem para o caso total/sobreponível.
+          
+          Funcionario
+          ¨¨¨¨¨¨¨¨¨¨¨
+          <CPF>,Pnome,Minicial,Unome,Data_nascimento,Endereço,
+          É_Secretaria,É_Vendedor,Velocidade_digitação_Grau_tec,Digitação
+
+* Mapeamento de união
+    - Cria-se uma tabela para a união que tem uma chave estrangeira
+      que aponta para as classes que foram unidas.
