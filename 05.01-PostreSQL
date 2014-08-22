@@ -1,6 +1,11 @@
 PostgreSQL
 ============
 
+* Acesso ao BD no PostgreSQL
+    
+    psql -h data.ime.usp.br -p 23001 -U uNUSP -d bd_NUSP
+    Senha padrão: NUSP
+
 * Comandos úteis para PostgreSQL:
     - \l (listar todos os bds)
     - \d (listar todas as tabelas)
