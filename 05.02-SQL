@@ -1,0 +1,243 @@
+SQL - Structured Query Language
+=================================
+
+* Foi criada em 1976
+* Possui comandos para:
+    - Consultas ao BD
+    - Modificação do BD
+    - Criação de views
+* O SQL tem vários padrões:
+    - ANSI SQL (1986)
+    - SQL-89 - inclusão derestrições de integridade
+    - SQL-92 (ou SQL2) - grande atualização da versão padrão anterior
+    - SQL-99 (inicialmente chamado SQL3) - inclusçai de expressões
+      regulares, consutas recursivas, gatilhos, comandos para controle
+      de fluxo,funcionalidades relacinados à orientação a objetos, etc.
+    - SQL-2003, SQL-2006, SQL-2008 - inclusão de funcionalidades
+      relacionadas a XML (entre outras coisas)
+    
+    - Os SGBDs geralmente implementan a ANSI SQL e partes da SQL-92 e
+      SQL-99, além de suas próprias extensões.
+    
+    - A grande variabilidade faz com que lidar com BDs seja muito
+      problemático.
+
+* Esquemas
+    - Criar esquema:
+        - CREATE SCHEMA nome_esquema
+            [AUTHORIZATION 'nome_proprientario'];
+    - Funciona como um NAMESPACE, agrupando objetos do BC
+      (tabelas,visãoes, tipos de dados, funções,etc.)que pertencem a
+      uma mesma aplicação.
+    - É possível ter dois ou mais objetos com um mesmo nome em um BD
+      contanto que cada um esteja em um esquema diferente.
+    - É possível definir/acessar objetos em umesuqema qualificando
+      o nome dos objetos. Por exemplo, o comando:
+        CREATE TABLE EMPRESA.FUNCIONARIO ...
+                     ^^^^^^^^^^^^^^^^^^^
+                     Tabela funcionário na schema empresa
+    
+    - Se não houver um esquema explicitamente definido, ele será 
+      colocado no schema padrão: PUBLIC, no Postgres.
+
+    - Mais comandos par esquemas (no Postgres):
+        - SHOW SEARCH_PATH;
+            Mostra quais são os esquemas existentes.
+        - SET SEARCH_PATH TO nome_do_esquema;
+            Define um esquema como esquema padrão para buscas, em 
+            uma dada seção. Essa informação não fica guardada entre 
+            seções diferentes do banco.
+        - DROP SCHEMA nome_esquema [CASCADE];
+            Remove um esquema. Com a opção CASCADE, os objetos
+            definidos dentro do esquema também serão removidos.
+            Se o esquema não estiver vazio e não houver a opção 
+            CASCADE, o SGBD retornará um erro.
+        - ALTER SCHEMA nome RENAME TO novo_nome;
+          ALTER SCHEMA nome OWNER TO novo_proprietario;
+    
+
+            Altera as informações de um esquema.
+
+- Tabelas
+    - Criar tabela:
+        - CREATE TABLE nome_tabela
+            [({nome_coluna tipo_dados [restricao_coluna])]
+            | restricao_tabela
+            | [, ...]}
+          ];
+
+    - Tipos de dadso de atributos
+        - Números inteiros:
+            - INTEGER ou INT (no PostgreSQL, ocupa 4 bytes)
+            - SMALLINT - ocup geralmente a metade da quantidade de bytes
+              usada por um INTEGER (no PostgreSQL, ocupa 2 bytes)
+        - Números reais
+            - FLOAT ou REAL (no PostgreSQL, ocupa 4 bytes)
+            - DOUBLE. (No PostgreSQL, chama-se DOUBLE PRECISION e ocupa 8
+              bytes)
+            - DECIMAL(i,j) ou DEC(i,j) ou NUMERIC(i,j), onde i é a
+              precisão e indica o total de dígits decimanis, e j é a
+              escala e indica o número de dígitos após o ponto decimal.
+              - O valor padrão para j é 0, mas i depende do SGBD.
+
+        - Caracteres
+            - CHARACTER(n) ou CHAR(n) - onde n é o número de caracteres,
+              que define o TAMANHO FIXO da cadeia. (O tamanho restante,
+              se a palavra for menor, será preenchido com espaços. Esses
+              espaços do fim são IGNORADOS).
+            - CHAR VARYING(n) ou VARCHAR(n) - onde n é o número MÁXIMO
+              de caracteres da cadeia.
+            - CHARACTER LARGE OBJETC ou CLOB - para grandes cadeias de
+              caracteres de tamanho variável (como documentos). (No
+              PostgreSQL, chama-se TEXT).
+            - No SQL padrão, o tamanho padrão para n é 1. Mas no
+              PostgreSQL, se não epecificarmos o valor de n para um
+              atributo do tipo VARCHAR, então ele terá um tamanho
+              ilimitado.
+
+            - Cadeias de caracteres literais devem ser delimitadas por
+              ASPAS SIMPLES, como em 'MAC0439'.
+            - Caracteres em SQL são case sensitive. Portanto, 'MAC0439'
+              é diferete de 'mac0439'. Por outro lado, palavras 
+              reservadas da SQL são case insensitive.
+            
+            - Por padrão, cadeias de caracteres hardcoded são entendidas
+              como VARCHAR. Logo, comparações CONSIDERAM espaços. Caso
+              seja feito um cast dessas strings para CHAR, então os
+              espaços serão desconsiderados.
+            
+            - Para fazer um "escape" do caracter aspas simples ('),
+              basta que coloquemos duas seguidas ('').
+
+        - Datas e horários
+            - DATE - exemplo: '2004-10-23' (formato que é sempre válido:
+              YYYY-MM-DD)
+            - TIME - exemplo: '22:45:17' (formato HH:MM:SS)
+            - TIMESTAMP - inclui os camposDATEeTIME, mas posições para
+              frações decimais de segundos. Exemplo:
+                '2014-08-20 15:43:34.827022'
+            - INTERLVAL: especifica um valor usado para incrementar ou
+              decrementar ovalor absoluto de uma dat,hora ou timestamp.
+              Um intervalo é qualidicado para ser YEAR-MONTH, DAY-TIME 
+              ou uma mistura dos dois. Exemplo:
+                - INTERVAL '1-2' (1 ano e 2 meses)
+                - INTERVAL '3 4:05:06' (intervalor de 4 dias, 4 horas, 5
+                  minutso e 6 segundos)
+                - INTERVAL (1-2 3 4:05:06)
+            
+            - Os tipos TIME e TIMESTAMP podem ter também um qualificador
+              WITH TIME ZONE (em UTC).
+                Ex: 
+                    CREATE TABLE TAB1(
+                        col1 TIMESTAMP WITH TIME ZONE
+                        ...
+                    );
+                    '2014-08-20 15:43:34.827022-03'
+            - O PostgreSQL tem uma função now() que mostra qual o
+              timestamp atual.
+              
+        - Booleano
+            - BOOLEAN - admite os valores TRUE, FALSE ou UNKNOWN.
+            - O valor UNKNOWN pode resultarde operações de
+              comparação envolvendo o valor NULL.
+              
+        - Cadeias de bits
+            - BIT(n) - cadeia de bits de tamanho fixo n
+            - BIT Vexemplo:RYING(n) - cadeia de bits com tamanho 
+              maximo n
+            - BINARY LARGE OBJETC ou BLOB - para grandes cadeias de bits
+              com tamanho variável (como imagens)
+              
+            - No PostgreSQL o único tipo implementado é conhecido 
+              como BYTEA.
+    
+    - Criação de domínios
+        - É possíbel declarar um novo domínio e usar o seu nome como
+          especificação para um atributo.
+        - Ex:
+            CREATE DOMAIN TIPO_CPF AS CHAR(11);
+            CREATE TABLE T(
+                cpf TIPO_CPF,
+                ...
+            );
+
+    - Restrições e valores padrão para colunas
+        - NOT NULL
+            - Define que uma cluna não pode receber o valor NULL
+            - É especificada de forma implícita para as colunas que
+              fazem parte da chave primária da tabela.
+        
+        - DEFAULT
+            - Define um valor que será atribuído à coluna em uma nova
+              tupla sempre que o valor para essa coluna não for
+              fornecido.
+            - Se uma coluna não possuir a restrição de NOT NULL e nenhum
+              valor padrão for definido para ela, então o valor NULL
+              será usado como padrão.
+        
+        - CHECK
+            - Restringe os valore que uma coluna pode assumir
+        
+        - PRIMARY KEY
+            - Especifica umaoumaiscolunas que compõem a chave primária
+              da tabela.
+            - Se a chave primária tiver mais de um atributo, basta
+              colocá-lo como uma restrição separada.
+        
+        - UNIQUE
+            - Especifica uma ou mais colunas que compõem uma chave
+              secundária (= alternativa) da tabela.
+        
+        - FOREIGN KEY
+            - Especifica uma chav estrangeira
+            - Oferece diferentes opções de ações para o tratamento de
+              violações de integridade referencial causadaspr operações
+              de inserção, remoçãoealteração:
+                - opção RESTRICT (padrão) 0 rejeita a operação de
+                  atualização que causará uma violação.
+                - opção SET NULL atribuirá NULL à fhace estrangeira que
+                  ficar sem sua "referência".
+                - opção SET DEFAULT - atribuirá um valor padrãoàchave
+                  estrangeira que ficar sem sua "referência".
+                - opção CASCADE - propaga a alteração feita na chave
+                  referenciada para as linhas que a referenciam. No
+                  caso de uma deleção, apaga as linhas DAQUELA TABELA.
+            - As ações acima devem ser qualificadas com as cláusulas ON
+              DELETE ou ON UPDATE.
+        
+        - CONSTRAINT
+            - É possível atribuir nomes àsrestrições, para que elas
+              possam ser apagadas posteriormente.
+
+        - Exemplo:
+            CREATE TABLE FUNCIONARIO (
+                Nome           VARCHAR(50) NOT NULL,
+                Cpf            TIPO_CPF    NOT NULL PRIMARY KEY,
+                Salario        DECIMAL(10,2) NOT NULL
+                                 CHECK(Salario > 650 AND Salario < 5000),
+                Idade          INT CHECK(Idade >= 18 AND Idade <= 120),
+                Casado         BOOLEAN NOT NULL DEFAULT FALSE,
+                Cpf_supervisor TIPO CPF DEFAULT '12345678901'
+                               REFERENCES FUNCIONARIO(cpf)
+                                 ON DELETE SET DEFAULT 
+                                 ON UPDATE CASCADE
+            );
+            
+            CREATE TABLE DEPARTAMENTO (
+                Dnumero INT PRIMARY KEY,
+                Dnome VARCHAR(40) NOT NULL UNIQUE,
+                Cpf_gerente TIPO_CPF NOT NULL DEFAULT '12345678901',
+                FOREIGN KEY(Cpf_gerente) REFERENCES FUNCIONARIO(cpf)
+                    ON DELETE SET DEFAULT ON UPDATE CASCADE
+            );
+            
+            CREATE TABLE LOCALIZACAO_DEP (
+                Dnumero  INT NOT NULL,
+                Dlocal   VARCHAR(15) NOT NULL,
+                PRIMARY KEY(Dnumero),
+                FOREIGN KEY(Dnumero) RECERENCES DEPARTAMENTO(Dnumero)
+                    ON DELETE CASCADE ON UPDATE CASCADE
+            );
+
+    - Remoção de tabelas
+        - DROP TABLE nome_tabela [CASCADE|RESTRICT];

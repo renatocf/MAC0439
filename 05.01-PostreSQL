@@ -1,0 +1,7 @@
+PostgreSQL
+============
+
+* Comandos úteis para PostgreSQL:
+    - \l (listar todos os bds)
+    - \d (listar todas as tabelas)
+    - \? (listar todos os comandos)
