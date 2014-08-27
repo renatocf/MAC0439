@@ -1,0 +1,66 @@
+Consultas em SQL
+==================
+
+* Formato básico de uma consulta:
+    SELECT coluna
+    FROM   tabelas
+    WHERE  restrições
+
+* Características da consulta SQL
+    - Toda consulta retorna, necessariamente, uma tupla como resultado.
+    - Estão incluídas na relação de resposta todas as tuplas que
+      respeitam a restrição WHERE, para as colunas projetadas com
+      SELECT.
+    - Em comparação com a álgebra relacional, temos o paralelo:
+    
+                            SELECT | π
+                            FROM   | σ
+    
+    - Renomeamento de atributos
+        - Usando o comando AS é possível renomear um atributo, ou mesmo
+          uma operação aritmética sobre eles.    
+
+    - Condicionais
+        - A expressão 'WHERE' aceita expressões booleanas
+        - Expressões simples: 
+            - operações aritméticas (=,<,<=,>,>=,<>)
+            - operações lógicas (AND, OR, NOT)
+        - Expressões complexas
+            - LIKE (expressões regulares simples)
+                - '_' casa com qualquer caracter 
+                - '%' casa com qualquer palavra
+                - Ex:
+                    /* Nomes que começam com 3 letras */
+                    SELECT nome FROM cliente
+                    WHERE nome LIKE '___ %';
+                - Caracteres _ e % escapados:
+                    s LIKE 'x%%x%' ESCAPE 'x'
+            
+            - Comparação de strings, datas e horários
+                - Os operadores >, <, >= e <= podem ser usadas para
+                  dazer comparações com esses tipos mais complexos.
+                - Esses operadores seguem a semântica tradicional
+                  para cada um dos tipos.
+        
+        - Lógica ternária (ou trivalente)
+            - Para entender como o AND, OR e o NOT entram na
+              lógica ternária, podemos pensar em TRUE = 1, 
+              FALSE = 0 e UNKNOWN = 1/2. Para os operadores,
+              teríamos AND = MIN, OR = MAX e NOT(x) = 1-x.
+            - Ex: TRUE AND (FALSE OR NOT(UNKNOWN)) 
+                                ≡ 
+                       MIN(1,MAX(0,1-1/2))
+                                ≡ 
+                            MIN(1,1/2)
+                                ≡
+                               1/2
+                
+                Logo, o resultado da expressão será UNKNOWN.
+            
+    - Ordenação            
+        - É possível ordenar as tuplas da relação resultante de uma
+          consulta por meio de uma cláusula:
+                ORDER BY <lista_de_atrivutos> [ASC | DEC]
+        
+        - A ordenação ascendente (ASC) é a padrão:
+            SELECT * FROM Cliente ORDER BY nome,telefone;

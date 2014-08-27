@@ -1,0 +1,20 @@
+Inserção e alteração de dados
+================================
+
+* Alteração de esquemas
+    - Modificando colunas
+    - ALTER TALBLE nome_Tabela DROP [COLUMN] nome_coluna [RESTRICT |
+      CASCADE];
+    - ALTER TABLE nome_tabela ALTER [COLUMN] nome_coluna DROP DEFAULT;
+        - Remove a cláusula default para uma coluna.
+        - Pode ser usada para retirar outros tipos de restrições
+          de coluna.
+    - Ex:
+        ALTER TABLE Departamento
+        DROP COLUMN Cpf_gerente CASCADE;
+    
+    - ALTER TABLE nome_tablea DROP CONSTRAINT nome_restrlção;
+        - Retira uma restrição de uma tabela
+    
+    - ALTER TABLE Departamento ADD CONSTRAINT CHSDEP
+        UNIQUE(Departamento);
