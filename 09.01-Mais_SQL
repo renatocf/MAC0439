@@ -1,0 +1,53 @@
+Mais SQL
+==============
+
+* Operadores de agregação
+    - Retornam um ÚNICO valor para algum cálculo sobre uma coluna.
+    - Podem ser do tipo MIN, MAX, COUNT e AVG.
+    - Só podem ser aplicados sobre UMA COLUNA. Ex:
+        SELECT MIN(preco)
+        FROM Vendas;
+
+*  count(atributo) x count(distinct atributo) x count(*)
+    - O count(atributo) realiza uma agregação ignorando todos os
+      valores NULL.
+    
+    - O count(distinct atributo) também ignora valores NULL. Porém,
+      ela também elimina repetições. Logo:
+                count(distinct atributo) <= count(atributo)
+    
+    - O count(*) retornará o número de tuplas de uma relação,
+      CONSIDERANDO a existência de campos NULL. Logo:
+                    count(atributo) <= count(*)
+    
+* Agrupamento
+    - Notação usando GROUP BY com SQL.
+        -- Ao colocarmos a cláusula GROUP BY para agregação, é
+        -- necessário termos algum outro atributo AGREGADOR 
+        -- (AVG, MIN, MAX, COUNT) para que faça sentido usar
+        -- um atributo como agrupamento. Sozinho, ele não faz
+        -- sentido.
+        SELECT nome_refri, AVG(preco)
+        FROM Venda
+        GROUP BY nome_refri;
+
+* Cláusulas HAVING
+    - A cláusula HAVING pode aparecer depois de GROUP BY, 
+      estabelecendo uma condição sobre cada grupo selecionado.
+
+* Expressões de junção (JOIN)
+    - Podem ser usados dentro de uma cláusula select OU como
+      cláusulas independentes.
+    - Produto cartesiano: CROSS JOIN
+        - Ex: R CROSS JOIN S;
+    - Junção natural: NATURAL JOIN
+        - Faz uma junção comparando atributos de mesmo nome
+        - Ex: R NATURAL JOIN S;
+    - Junção teta: JOIN ON
+        - Faz uma junção dando alguma condição extra
+        - Ex: R JOIN S ON <condição>
+    - Junção externa: OUTER JOIN
+        - Modificadores
+            - NATURAL ou ON <condição>
+            - LEFT, RIGHT, FULL (tuplas soltas só de R, S ou ambas)
+            - FULL é a opção padrão

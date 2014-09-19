@@ -1,0 +1,26 @@
+Visões Materializadas
+========================
+
+* O resultado de uma consulta definida para uma visão materializada é
+  colocada em um "cache" como uma tabela concreta, que pode ser
+  atualizada a partir de suas relações de base de tempos em tempos.
+
+* O acesso a uma visão materializada é muito mais eficiente que o acesso
+  a uma visão convencional, ao custo de se ter dads que (potencialmente)
+  podem estar desatualizados.
+
+* Este tipo de visão é útil em aplicações de data warehouse.
+
+* Para criar uma visão materializada, usa-se o comando:
+    CREATE MATERIALIZED VIEW <nome-visão> AS <definição-visão>;
+
+* No PostgreSQL, o comando funciona da seguinte maneira:
+    - A consulda da visão materializada é executada e o seu resultado é
+      usado para "popular" a visão no momento em que o comando CREATE
+      MATERIALIZED VIEW é executado.
+        - Análogo ao que é feito na criação de tabelas por meio do
+          comando CREATE TABLE AS [consulta SQL]
+    - Depois, a visão pode ser atualizada por meio da execução do 
+      comnando REFRESH MATERIALIZED VIEW [nome da visão]
+        - Já as tabelas criadas por CREATE AS só podem ser atualizadas 
+          da forma tradicional (INSERT, UPDATE, DELETE).

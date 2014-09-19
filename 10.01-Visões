@@ -1,0 +1,47 @@
+Visões
+========
+
+* Declaração de visões
+    - Formato geral
+        CREATE VIEW <nome-visão> AS <definição-visão>;
+        CREATE VIEW <nome-visão> (A1,A2,...,An) AS <definição-visão>;
+    - A definição da visão é uma consulta SQL.
+
+* Visões atualizáveis
+    - Em visões suficientemente simples, é possível tradutiz uma
+      modificação da visão em uma modificação equivalente em uma tabela
+      de base.
+    - SQL2 possui uma definição formal sobre quando modificações em uma
+      visão são permitidas (as regras são bastante complexas)
+    - Regra simplificada:
+        Só podem ser modificadas visões que são definidas por meio
+        da seleção (usando SELECT, não SELECT DISTINCT) de alguns
+        atributos de UMA ÚNICA RELAÇÃO R.
+    - R pode ser uma taberla ou vuma visão atualizável.
+    
+    - Dois pontos importantes
+        - A cláusula WHERE não pode envolver R em uma subconsulta.
+        - Os atributos de R não projetados na visão devem poder ser
+          NULL ou devem possuir um valor default definido.
+    
+    - Ex: consulta não atualizável
+        
+        CREATE VIEW RefrigeranteNaaoUnico AS
+        SELECT nome
+        FROM   Refrigerantte AS R
+        WHERE  EXISTS(                              -- Usa a relação R
+            SELECT nome FROM Regrigerante           -- internamente.
+            WHERE nome <> R.nome AND fab = R.fab)   
+
+* Remoção da visão
+    - Uma modificação extrema de uma visão é removê-la inteiramente.
+    - Essa modificação pode ser feita mesmo quando a visão não é 
+      atualizável.
+    - Ex: DROP VIEW BCC_SI
+    - O comando DROP VIEW remove a definição da visão (de modo que não
+      é mais possível fazer consultas ou aplicar modificaçãos sobre
+      a visão)
+    - Mas a remoção da visão NÃO afeta as tuplas das relações 
+      subjacentes.
+    - Se fizermos um DROP TABLE em alguma tabela usada na visão,
+      a visão será inutilizada.

@@ -1,0 +1,226 @@
+Consultas Recursivas
+======================
+
+* Consultas "não-convencionais"
+
+    - Ex: sequências de filmes
+        
+        Filme    | Sequência
+        ---------|-----------
+        Rocky    | Rocky II
+        Rocky II | Rocky III
+
+    - É possível recuperar essa informação a partir da relação 
+      FILME_SEQUENCIA. Mas como? 
+        Múltiplas junções - joins. Porém, só poderíamos colocar 
+        usando um número finito e FIXO de joins (não poderíamos
+        automatizar o processo).
+    - Também seria possível manter essa informação em uma relação,
+      chamada, por exemplo, CONTINUACAO. Em CONTINUACAO, poderíamos
+      ter tuplas que não são pares.
+    
+* Operador ponto fixo
+    
+
+* Operador ponto fixo em Álgebra Relacional
+    
+    - Ex:
+        Φ(CONTINUACAO = 
+            ρFILME, SEQUENCIA(X,Y) (FILME_SEQUENCIA) U 
+            ρR(x,y)( πPi _filme,sequencia(
+                FILME_SEQUENCIA join _sequencia=x CONTINUACAO
+            ))
+        )
+    
+    - Interpretação: "Um filme y é uma continuação de um filme x se 
+                      ele é uma sequência imediata de x ou se ele é
+                      uma continuação de uma sequência imediata".
+
+* Cálculo do Ponto fixo    
+    
+    - Método para calcular:
+        1. Começamos supondo que a relação R do lado esquerdo da
+           equação está vazia
+        2. Repetidamente, calculamos o valor para a relação R por
+           meio da avaliação do lado direito da equação usando o
+           valor antigo de R.
+        3. Parar quando, depois de uma iteração, o valor novo e o
+           antigo de R é o mesmo.
+    
+    - Ex: Cálculo do ponto fixo
+        
+             R = CONTINUACAO                  Filme    | Sequência
+        .-----------.-----------.             ---------|-----------
+        |     X     |     Y     |             Rocky    | Rocky II
+        |===========|===========|             Rocky II | Rocky III
+        |           |           | Passo 0     
+        |-----------|-----------|             
+        | Rocky     | Rocky II  | Passo 1 <-.  
+        | Rocky II  | Rocky III |           |
+        | Rocky III | Rocky IV  |           |
+        |-----------|-----------|           |  
+        | Rocky     | Rocky III | Passo 2 --' <-.
+        | Rocky II  | Rocky IV  |               |
+        |-----------|-----------|               |
+        | Rocky     | Rocky IV  | Passo 3 <-. --.
+        |-----------|-----------|           | 
+        |           |           | Passo 4 --'
+        '-----------'-----------'
+    
+* Equações de ponto fixo em Datalog
+    
+    - As expressões em álgebra relacional necessárias para definir
+      equações de ponto fixo comstumam ser muito complicadas.
+    - Frequentemtente, é mais fácil representá-las com a notação
+      DATALOG.
+    - Mas é importante ressaltar que, na SQL, a notação para a 
+      definição de ponto-fixo é mais algébrica que lógica. (porque
+      isso está mais próximo dos demais comandos do SQL).
+    
+    - Ex: 
+        CONTINUACAO(x,y) ← FILME_SEQUENCIA(x,y)
+        CONTINUACAO(x,y) ← FILME_SEQUENCIA(x,z) AND CONTINUACAO(z,y)
+    
+    - Notação:
+        - Letras minúsculas: variáveis
+        - Letras maiúsculas: constantes
+
+* Negação em regras recursivas
+    - Exemplo de negação + recursão segura
+        - Queremos encontrar os pares de cidade (x,y) no grafo
+          de voos tais que a companhia UA tem voos conectando
+          x a y (talvez passandoi por mais de uma cidade), mas
+          a companhia AA não tem.
+        
+          UA_ALCANCA(x,y) ← VOOS(UA,x,y,p,c)
+          UA_ALCANCA(x,y) ← UA_ALCANCA(UA,x,z,p,c) 
+                            AND UA_ALCANCA(UA,z,y,p,c)
+        
+          AA_ALCANCA(x,y) ← VOOS(UA,x,y,p,c)
+          AA_ALCANCA(x,y) ← UA_ALCANCA(UA,x,z,p,c) 
+                            AND UA_ALCANCA(UA,z,y,p,c)
+          
+          SOMENTE_UA(x,y) ← UA_ALCANCA(x,y) AND NOT AA_ALCANCA(x,y)
+    
+    - Exemplo de negação + recursão não segura
+        - Consideremos uma relação unária R (= com 1 só atributo)
+          que contém uma só tupla (0)
+        
+        - Consideremos duas relações unárias P e Q, definidas sobre R
+          da forma:
+            P(x) ← R(x) AND NOT Q(x)
+            Q(X) ← R(x) AND NOT P(x)
+        
+        - Essas regras dizem que um elemento x em R ou está em P, ou
+          está em Q. Mas x não pode estar em P e Q ao mesmo tempo.
+          Isso equivale às equações:
+                                P = R - Q 
+                                Q = R - P 
+                      
+        - Consideremos dois casos:
+            - Tupla em R: P = R - Q → ∅ = {(0)} - ∅  (OK)
+                          Q = R - P → ∅ = {(0)} - ∅  (OK)
+              É uma resposta possível
+            
+            - Tupla em P: P = R - Q → {(0)} = {(0)} - ∅  (OK)
+                          Q = R - P → ∅ = {(0)} - {(0)}  (OK)
+              É uma resposta possível
+            
+            - Como temos duas respostas POSSÍVEIS, temos uma
+              ambiguidade - o que NÃO PODE ACONTECER NO SQL.
+              Cada consulta deve ter APENAS UMA resposta válida.
+        
+    - Para que uma consulta recursiva com negação seja segura,
+      precisamos verificar se ela é ESTRATIFICADA:
+        1. Montamos um grafo com nós que equivalem às visões 
+           criadas na recursão.
+        2. Colocamos uma aresta que liga x a y se y é usado para
+           calcular x.
+        3. Um arco será rotulado como NEGATIVO se estiver numa
+           cláusula que usa NOT.
+        4. Calculamos o valor ESTRATO do nó x como sendo o maior 
+           número de arcos (-) em um caminho que começa em x e
+           vai até o nó y, para todo nó y alcançável a partir de x.
+        5. Se houver um ciclo com arco (-), a consulta é INSEGURA.
+    
+    - Ex: a primeira consulta é SEGURA, pois não contém ciclos 
+          usando arcos negativos. 
+    
+                          .------------. 1
+                          | SOMENTE_UA |
+                          '------------'
+                            /        \
+                         - /          \
+                          |/          \|
+                 .------------. 0  .------------. 0
+                 | AA_ALCANCA |    | UA_ALCANCA |
+                 '------------'    '------------'
+                    |      ^          |      ^
+                    '------'          '------'
+    
+    - Ex: a segunda consulta é INSEGURA, pois contém ciclos
+          com arcos negativos.
+                               -
+                       1.---.=====>.---.1
+                        | P |      | Q |
+                        '---'<====='---'
+                           \\  -  //
+                            \|   |/
+                             .---.0
+                             | R |
+                             '---'
+    
+        Temos um ciclo com pelo menos 1 arco negativo (no caso, 2)
+
+* Consultas SQL recursivas
+    
+    - Ex: caso simples
+    
+        WITH RECURSIVE t(n) AS (
+            SELECT 1
+            UNION ALL   -- ALL elimina repetição da união
+            SELECT n+1 FROM f WHERE n < 5
+        )
+        SELECT sum(n) FROM t;
+        
+        - O resultado dessa consulta é o número 15.
+        - A relação t termina com tuplas {(1),(2),(3),(4),(5)}
+    
+        - Tabela com simulação da execução:
+        
+                          | n |        |
+                          |   |        |
+                          | 1 | Passo1 |
+                          | 2 | Passo2 |
+                          | 3 | Passo3 |
+                          | 4 | Passo4 |
+                          | 5 | Passo5 |
+                          |   | Passo6 |
+    
+    - Ex: vôos e conexões (INVÁLIDA)
+        
+        WITH RECURSIVE Alcanca(de,para) AS (
+            (SELECT de, para FROM Voos)
+            UNION
+            (SELECT R1.de, R2.para
+             FROM Alcanca as R1, Alcanca as R2
+             WHERE R1.para = R2.de)
+        )
+        SELECT * FROM Alcanca;
+        
+        - A consulta é inválida porque há duas chamadas recursivas
+          na relação. Para evitar problemas, o SQL só aceita recursões
+          LINEARES.
+    
+    - Ex: vôos e conexões (válida - linear)
+        
+        WITH 
+            Pares AS SELECT de, para FROM Voos,
+            
+            RECURSIVE Alcanca(de,para) AS (
+                Pares
+                UNION
+                (SELECT Pares.de, Alcanca.para 
+                 FROM   Pares, Alcanca
+                 WHERE  Pares.para = Alcanca.de)
+            )
