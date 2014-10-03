@@ -1,0 +1,113 @@
+1)
+
+         .- <num_cartao>
+         |- <<telefone>>
+         |- endereço                             
+         |  |- rua
+         |  '- CEP
+         |- sexo                                 .- <num>
+         |- nome                                 |- nome
+        .-------.          possui               .-------.
+        | Aluno |N___________/\________________M| Grupo |
+        '-------'            \/¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨ '-------'
+           |                 |- <dat_inicio>        |
+           |                 '- <dat_fim>           |
+           |                                        |
+           |                    .- dat_entrega      |
+           |                    |- dat_ini_entrega  |
+           |      .- data       |- online?          |
+           |     .-------.     .----------.         |
+       faz /\____| Prova |     | Trabalho |________/\ faz
+           \/    '-------'     '----------'        \/
+           '- nota    \             /              '- nota
+                       \           /
+                       /\`.     ,´/;
+                       \ \ \   / / /
+                          \     /
+                           \   /
+                            \ /
+                            (d)
+                            ||
+                       .-----------.
+                       | Avaliação |
+                       '-----------'
+                        |- <num> 
+                        '- nome
+    
+    - Obs:
+        - Da maneira que está modelada, precisamos colocar dat_inicio e
+          dat_fim como chaves parciais, de modo que um aluno possa estar
+          em um mesmo grupo durante períodos de tempo distintos.
+        - Para criar uma chave composta, criamos um atributo composto
+          e dizemos que ele é a chave.
+
+2)
+    
+        Tipo_aviao(<Modelo>, capacidade, peso) <------------.
+                                                            |
+                               .----------------------------'
+   .--> Aeronave(<Num_Reg>, modelo) <-----------------------.
+   |                          c.e                           |
+   |                  (relacionamento 1:N)                  |
+   |                                                        |
+   |    Hangar(<Num>, local, capacidade)                    |
+   |                                                        |
+   |    Pessoa(<CPF>, nome, end, tel, cod_prop) <-------.-. |
+   |                                     c.e -------.   | | |
+   |                                                |   | | |
+   |    Corporação(<Nome>, end, telefone, cod_prop) |   | | |
+   |                                        c.e --. |   | | |
+   |                                              | |   | | |
+   |    /* Essa alternativa é boa para o caso     | |   | | |
+   | .> Proprietario(<cod_pro>) <-----------------'-'   | | |
+   | |                                                  | | |
+   | |  Funcionario(<cpf>, salario, turno)              | | |
+   | |               c.e -------------------------------' | |
+   | |                                                    | |
+   | |  Piloto(<cpf>, restr. num_licensa)                 | |
+   | |          c.e  -------------------------------------' |
+   | |                                                      |
+   | |  Servico(<Num_reg, dat_cadastro>, horas)             |
+   | |             c.e -------------------------------------'
+   | |  
+   | '-------------------------------,
+   |    Pertence(<NumRegAeronave, CodProp>, datacompra)
+   |                   c.e          c.e
+   '--------------------'             
+    
+    - Obs: alguns mapeamentos que faltam:
+        
+        - Atributo Multivalorado: gera uma relação que tem como chave
+          estrangeira o atributo da qual pertence.
+        
+        - Agregado: para um agregado, basta que associemos (como chave
+          estrangeira de uma relação de relacionamento M:N, ou como
+          atributos de um relacionamento 1:1 ou 1:N) os atributos da
+          relação gerada pelo relacionamento. Ex:
+        
+                .--------------------------------------------.
+                | .----------.      consulta      .--------. |
+                | | Paciente |M________/\________N| Médico | |
+                | '----------'         \/         '--------' |
+                |  '- <CPF>            '- (dat)    '- <CRM>  |
+                '--------------------------------------------'
+                                       |
+                                       /\
+                                      //\\ tem
+                                      \\//
+                                       \/
+                                       |
+                                 ..=========..
+                                 || Receita ||
+                                 ''=========''
+                                   |- (num)
+                                   '- <<remedio>>
+            
+            Paciente(<cpf>, nome, ...)
+            
+            Médico(<CRM>, nome, ...)
+            
+            Consulta(<CRM, CPF, dat>)
+            
+            Receita(<num>, CRM, CPF, dat)
+                           ¨¨¨¨¨c.e¨¨¨¨¨

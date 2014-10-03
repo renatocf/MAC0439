@@ -1,0 +1,228 @@
+Triggers
+==========
+
+* Funcionam para executar uma açõa quando um evento ocorre
+* Nos BDs ativos, parte da semântica que geralmente é codificada dentro
+  das aplicações pode ser expressa por meio das regras ativas.
+    - Isso dá às aplicações uma nova dimensão de independência 
+      - independência de conhecimento.
+* As regras semânticas podem ser codificadas uma só vez no BC, e ficar
+  automaticamente compartilhadas entre todos os usuários e aplicações
+  que acessam o BD.
+    - Modificação desse conhecimento é feita por meio de mudanças
+      no banco de dados.
+
+* Regra ativa
+    CREATE TRIGGER ControleSalario /* Nome do trigger */
+    AFTER INSERT OR DELETE OR UPDATE of Salario /* Ação */
+          ON Funcionario /* Tabela sobre a qual é executada a ação */
+    FOR EACH ROW
+    WHEN ((SELECT AVG(Salario) FROM Funcionario) > 100) /* Condição */
+         UPDATE Funcionario             /* Ação a ser realizada */
+         SET Salario = .9 * Salario;    
+
+* Dizemos que uma regra ativa é:
+    
+
+* Componentes de uma regra ativa
+    - Eventos: são primiticas para mudanças de estado em BDs. Alguns
+      sistemaas podem também monitorar:
+        - recuperações;
+        - eventos relacionados ao tempo (e.g., às 17h, toda
+          sexta-feira);
+        - eventos externos, gerados explicitamente por aplicações.
+    - Condições: pode ser tanto um predicado do banco de dados quando
+      uma consulta:
+        - Uma condição deve ser VERDADEIRO ou FALSO
+        - No caso de uma condição expressa por meio de uma consulta, 
+          a consulta é interpretada como VERDADEIRO se ela contém ao
+          menos uma tupla, e como FALSO, no caso contrário. 
+    - Ação: é um procedimento qualquer de manipulação de dados. Ela pode
+      ter, inclusive, comandos transacionais (como ROLLBACK) ou comandos
+      de manipulação de regras (como a ativação e desativação de regras
+      ativas ou grupos de regras ativas).
+
+* BDs Ativos - Aplicações "internas" ao BD
+    - Usa-se regras ativas para implementar fguncionalidades clássicas
+      do gerenciamento de baco de dados, como:
+        - manutenção de integridade
+        - manutenção de dados derivados
+        - gerenciamento de replicações
+    - Exemplo de outras aplicações internas:
+        - manutenção de versões
+        - administração de segurança
+        - logging (auditoria)
+        - gerenciamento de workflows.
+
+* BDs Ativos - Aplicações "externas" ao BD
+    - regras de negociação para o merdcado de ações
+    - regras para a gestão de estoque
+    - regraps para o gerenciamento de consumo de energia
+
+* Triggers no padrão SQL3
+    - O comando para definição de triffers do SQL oferece diferente
+      opções para o projetista. As principais são:
+        - A ação pode ser executada antes (BEFORE), depois (AFTER) ou no
+          lufar do (INSTEAD OF) evento que disparou a regra.
+        - A ação pode referenciar tanto os 'valores antigos' quanto os
+          'novos valores' das tuplas que serão incluídas, removidas ou
+          alteradas pelo evento que disparou a ação (novos só no caso
+          de inserção/alteração. Antigos apenas em remoção/alteração).
+        - Nos eventos de alteração "monitorados", podemos especificar
+          uma 'coluna particular' ou um 'conjunto de colunas'.
+
+    - Uma condição pode ser especificada por meio da cláusula WHEN.
+    - A ação só é executada quando a regra é disparada e a confição é
+      satisfeita.
+    - O projetista tem a opção de especificar que ação é executada.
+        - Uma vez para cada tupla modificada: FOR EACH ROW
+        - Uma vez só para todas as tuplas que são modificadas em uma
+          operação sobre o BD: FOR EACH STATEMENT.
+
+* Exemplos:
+    Funcionario(Nome, Cpf, Salario, Dnr, Cpf_supervisor)
+    Departamento(Dnome, Dnumero, Salario_total, Cpf_gerente)
+        - "Salario_total" é um atributo dericado obtido por meio da soma
+          dos salários de todos os funcionários do departamento.
+        - Toda operação de modificação de um funcionário que afete seus
+          salários deve causar uma mudança no salário total.
+
+    - Mudança de salário de um funcionário (trigger por linha)
+        
+        CREATE TRIGGER Salario_total1
+        AFTER UPDATE OF Salario ON Funcionario
+        REFERENCING OLD ROW AS O, NEW ROW AS N
+        FOR EACH ROW
+        WHEN (N.Dnr IS NOT NULL)
+            UPDATE DEPARTAMENTO
+            SET Salario_total = Salario_total + N.salario - O.salario
+            WHERE Dnumero = D.nr;
+
+        - OLD ROW: tupla antiga (antes de sofrer alteração)
+        - NEW ROW: tupla nova (depois da alteração)
+        - Uma operação de inserção só tem a tupla NEW; uma de remoção
+          só tem a tupla OLD.
+
+    - Mudança de departamento do funcionário (trigger por linha)
+        
+        CREATE TRIGGER Salario_total2
+        AFTER UPDATE OF Dnr ON FUNCIONARIO
+        REFERENCING OLD ROW AS O, NEW ROW AS N
+        FOR EACH ROW
+        BEGIN
+            UPDATE Departamento
+            SET Salario_total = Salario_total + N.salario
+            WHERE Dnumero = N.nr;
+            UPDATE Departamento
+            SET Salario_total = Salario_total - O.salario
+            WHERE Dnumero = O.nr;
+        END;
+
+    - (trigger por comando) 
+        
+        CREATE TRIGGER Salario_total
+        AFTER UPDATE OF Salario ON FUNCIONARIO
+        REFERENCING OLD TABLE AS O, NEW TABLE AS N
+        FOR EACH STATEMENT
+        WHEN EXISTS ( SELECT * FROM N WHERE N.Dnr IS NOT NULL) OR
+             EXISTS ( SELECT * FROM O WHERE O.Dnr IS NOT NULL)
+        UPDATE DEPARTAMENTO AS D
+        SET D.Salario_total = D.Salario_total
+        + (SELECT SUM(N.Salario) FROM N WHERE D.Dnumero = N.Dnr)
+        - (SELECT SUM(O.Salario) FROM O WHERE D.Dnumero = O.Dnr)
+        WHERE Dnumero IN ( (SELECT Dnr FROM N) 
+                            UNION (SELECT Dnr FROM O) );
+
+* Restrições em SQL
+    - PRIMARY KEY
+    - FOREIGN KEY
+    - UNIQUE
+    - CHECK
+    - Assertion
+        - Especiica restrições como o CHECK, envolvendo várias tabelas.
+        - Ex:
+            CREATE ASSERTION Restricao_salario CHECK (
+                AFTER
+                    INSERT ON Funcionario,
+                    UPDATE OF Salario ON Funcionario
+                    UPDATE OF Departamento ON Funcionario,
+                    DELETE ON Funcionario
+                NOT EXISTS (SELECT * FROM Funcionario F, Funcionario G,
+                                          Departamento D
+                            WHERE F.Salario > G.Salario
+                              AND F.Dnr = D.Dnumero
+                              AND D.Cof_gerente = G.Cpf));
+            )
+
+* Triggers no PostgreSQL - Limitações
+    - No PostgreSQL, não é possível renomear as tuplas OLD e NEW (ele
+      não possui cláusulas REFERENCING)
+    - O PostgreSQL não permite que as tabelas OLD TABLE e NEW TABLE
+      sejam usadas em triggers do tipo FOR EACH STATEMENT (isso ainda
+      não foi implementado nesse SGBD)
+    - No PostgreSQL, a condição da cláusula WHEN não pode envolver
+      subconsultas:
+        - Ela pode apenas fazer verificações sobre os valores das tuplas
+          OLD e NEW.
+        - Não é útil para triggers com FOR EACH STATEMENT.
+
+    - O triggers pode disparar:
+        - BEFORE: antes de tentar realizar a oreração na linha (antes
+          das restrições serem verificadas e o comendo INSERT, UPDATE<
+          ou DELETE ser tentado)
+        - AFTER: após a operação estar completa (após as restrições 
+          serem verificadas e o comendo INSERT, UPDATE ou DELETE ser
+          tentado)
+
+    - Triggers são especificados para executar INSTEAD OF do evento
+      devem ser do tipo FOR EACH ROW e só podem ser definidos sobre
+      'views'
+    - Triggers do tipo BEFORE ou AFTER em uma view precisam ser
+      declarados com FOR EACH STATEMENT.
+    - A ação de um trigger no PostgreSQL é sempre a chamada de uma
+      função (por meio da cláusula EXECUTE PROCEDURE)
+
+    - Ex:
+        CREATE OR REPLACE FUNCTION AtualizaDepartamento()
+            RETURN TRIGGER AS $$
+        BEGIN
+            UPDATE Departamento
+                SET Salario_total = Salario_total + NEW.salario - 
+                                    OLD.salario
+                WHERE Dnumero = NEW.Dnr
+            RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
+
+        CREATE TRIGGER Salario_total1
+        AFTER UPDATE OF Salario ON FUNCIONARIO
+        FOR EACH ROW
+        WHEN ( New.Dnr IS NOT NULL )
+            EXECUTE PROCEDURE AtualizaDepartamento();
+    
+    - Para triggers com AFTER ou FOR EACH STATEMENT
+        - O valor de retorno da função é sempre ignorado
+        - Ela pode, inclusive, ser NULL
+        - Apesar disso, qualquer um desses triggers pode abortar a
+          operação gerando uma exceção dentro da função (com o 
+          comando RAISE EXCEPTION 'mensagem de erro')
+
+    - Para triggers com INSTEAD OF
+        - Triggers desse tipo só podem ser usadas em visões e sempre
+          devem ser do  tipo FOR EACH ROW.
+        - Se a função não fizer nenhuma modificação no BD, pode retornar
+          NULL para sinalizar isso.
+        - No caso contrário, a função deve retornar um valor diferente
+          de NULL para indicar que o trigger executou a operação
+          solicitada:
+            - Para a operação INSERT e UPDATE, o valor de retorno pode
+              ser o NEW.
+            - para operações de DELETE, o valor de retorno pode ser OLD.
+
+    - Para triggers com BEFORE + FOR EACH ROW
+        - Se a função devolver NULL, então a operação subsequente será
+          cancelada (ou seja, o comando INSERT, UPDATE e DELETE não será
+          mais executado sobre a linha).
+        - Se a função devolver um valor diferente de NULL, então a
+          operação subsequente prosseguirá usando o valor de retorno
+          como novo valor para a linha.

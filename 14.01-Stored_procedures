@@ -1,0 +1,379 @@
+Persistent Stored Modules (SQL/PSM)
+=====================================
+
+* Cada SGBD oferece um modo fifgerente para o usuário manter junto ao
+  esquema do BD funções ou procedimentos que podem ser usados nas
+  cunsultas SQL ou em outros comandos SQL.
+* Essas funções e procedimentos são escritos em linguagens simples, mas
+  que nos permitem executar detro do BB operações que não podem ser
+  expressas em SQL.
+* O padrão PSM captura os principais conceitos existentes nessas
+  linguagens simples implementadas nos SGBDs.
+* Funciona como uma mistura de linguagem estruturada com linguagem de
+  consulta e criação.
+
+* Funções e procedumentos em PSM
+    - Dois tipos: PROCEDURE (sem valor de retorno) 
+                  FUNCTION (com valor de retorno)
+
+    - Parâmetros de um procedimento
+        - São triplas contento modo-nome-tipo
+        - Modos:
+            - IN: define um parâmetro de entrada
+            - OUT: define um parâmetro de saída
+            - INOUT: define um parâmetro de entrada e saída
+    - Parâmetros de uma função
+        - São triplas contendo nome-tipo
+        - Um parâmetro da funçaõ é sempre do tipo IN
+        - A saída é feita sempre pelo RETURN
+
+    - Exemplo:
+        CREATE PROCEDURE Mudanca(
+            IN endereco_antigo VARCHAR(255),
+            IN endereco_novo   VARCHAR(255),
+        )
+        UPDATE EstrelaDeCinema
+        SET endereco = endereco_novo
+        WHERE endereco = endereco_antigo;
+
+        - O procedimento pode usar os argumentos como se fossem
+          constantes dentro do comando SQL.
+    
+    - Comandos simples de PSM
+        - Declaração de variáveiss locais: DECLARE <nome_variável> <tipo>
+        - Atribuição de valores: SET <nome_variável> = <variável>
+        - Definição de blocos: BEGIN ... END
+        - Valor de retorno: RETURN
+        - Condicionais: IF ... THEN ... ELSEIF ... ELSE
+
+    - Exemplo: 
+        - A função só devolve verrdadeiro se o etúdio 'e', no ano 'a',
+          não produziui nenhum filme ou produziu ao menos uma comédia.
+
+        CREATE FUNCTION ProdComedia (a INT, e CHAR(15)) RETURNS BOOLEAN
+        IF NOT EXISTS(
+            SELECT * FROM Filmes WHERE anbo = a AND nome_estudio = e)
+            THEN RETURN TRUE;
+        ELSEIF 1 <= (SELECT COUNT(*) FROM Filme WHERE ano = a
+                                                  AND genero = 'comedia')
+            THEN RETURN TRUE;
+        ELSE
+            RETURN FALSE;
+            
+    - Há várias maneiras de usar consultas SELECT-FROM-WHERE em PSM:
+        - Subconsultas podem ser usadas em condições, ou se forma
+          geral, em qualquer lugar onde são aceitas em SQL.
+        - Podemos fazer atribuições de variáveis em SQL.
+
+    - Exemplo:
+        - Uma consulta Scom uma única linha de resultado em PSM
+        - A cláusula INTO no SELECT faz uma atribuição a uma variável.
+        
+        CREATE PROCEDURE AlgumProc(IN nome_estudio CHAR(15))
+        DECLARE patromonio_pres INTEGER;
+        SELECT patrimonio
+        INTO   patrimonio_pres /* será armazenado em IN */
+        FROM   Estudio, ExecutivoDeCinema
+        Where  ...
+    
+    - Laços
+        - <rótulo_do_laço>: LOOP
+             <lista de comandos>
+          END LOOP;
+
+        - Para sair do laço:
+            LEAVE <rótulo do laço>;
+            
+        - WHILE <condição> DO
+              <lista de comandos>
+          END WHILE;
+
+        - REPEAT
+              <lista de comandos>
+          UNTIL<condição>
+          END WHILE;
+            
+    - Exemplo:
+        CREATE PROCEDURE MediaVariancia(
+            IN e CHAR(15),
+            OUT media REAL,
+            OUT variancia REAL
+        )
+        -- Declara um nome para erro do SQL. Cada código é formado
+        -- por 5 variáveis.
+        DECLARE Not_Found CONDITION FOR SQLSTATE '02000';
+        
+        -- Cursores são um conjunto de tupla que podem ser   percorridos.
+        -- Funciona como um iterador sobre o conjunto de tuplas. Nesse
+        -- caso, o iterador é de avanço, e não pode voltar.
+        --
+        -- Ao declararmos o cursor, já declaramos quais as tuplas
+        -- de interesse. Porém, a consulta só é geita no momento 
+        -- de uso.
+        DECLARE CursorFilme CURSOR FOR
+            SELECT duracao FROM Filme WHERE nome_estudio = e;
+        DECLARE novaDuracao INTEGER;
+        DECLARE contFilme INTEGER;
+        
+        BEGIN
+            SET media = 0.0;
+            SET variacia = 0.0;
+            SET contFilme = 0;
+            OPEN CursorFilme;
+            loopFilme: LOOP
+                -- Pega o próximo elemento da tupla e o armazena
+                -- nessa nova variável.
+                FETCH FROM CursorFilme INTO novaDuracao;
+                IF Not_Found THEN LEAVE loopFilme END IF;
+                SET contFilme = contFilme + 1;
+                SET media = media + novaDuracao;
+                -- Calcula a variância pela forma: E(X²) - E(X)²
+                SET variancia = variancia + novaDuracao * novaDuracao;
+            END LOOP;
+            SET media = media/contFilme;
+            SET varianvia = varianvia/contFilme - media * media;
+            
+            -- É importante DESBLOQUEAR o cursor para liberar as
+            -- tabelas usadas para utilização de outras consultas.
+            CLOSE CursorFilme;
+        END;
+    
+    - Exemplo: laços do tipo FOR
+        CREATE PROCEDURE MediaVariancia(
+            IN e CHAR(15), OUT media REAL, OUT variancia REAL)
+        DECLARE Not_Found CONDITION FOR SQLSTATE '02000';
+        DECLARE CursorFilme CURSOR FOR
+            SELECT duracao FROM Filme WHERE nome_estudio = e;
+        DECLARE novaDuracao INTEGER;
+        DECLARE contFilme INTEGER;
+        
+        BEGIN
+            SET media = 0.0; SET variacia = 0.0; SET contFilme = 0;
+            FOR loopFilme AS CursorFilme CCRUSOR FOR
+                SELECT duracao DROM Filme WHERE nome_estudio = e;
+            DO
+                SET contFilme = contFilme + 1;
+                SET media = media + novaDuracao;
+                SET variancia = variancia + novaDuracao * novaDuracao;
+            END FOR;
+            SET media = media/contFilme;
+            SET varianvia = varianvia/contFilme - media * media;
+        END;
+
+    - Exceções em PSM
+        - Um sistema SQL indica condições de erro setando um código 
+          (de 5 caracteres) à variável SQLSTATE.
+        - PSM permite a declaração0 de 'exception handlers', cada um
+          deles associado a um bloco de código.
+        - Componentes de um 'hanfler'
+            - Uma lista de confições de exceção
+            - O código a ser executado quando uma das exceções é gerada
+            - Uma inficação do lugar aonde ir quando ocorre a exceção.
+
+        - Exemplo: exceções em PSM
+            CREATE FUNCTION ObtemAno(t VARCHAR(255)) RETURNS INTEGER
+            DECLARE Not_Found CONDITION FOR SQLSTATE '02000';
+            DECLARE Too_Many  CONDITION FOR SQLSTATE '21000';
+            BEGIN
+                DECLARE EXIT HANFLER FOR Not_Found, Too_Many
+                    RETURN NULL;
+                RETURN (SELECT ano FROM Filme WHERE titulo = t);
+            END;
+
+* Stored Procedures no PostgreSQL
+    - O PostgreSQL não diferencia procedures de functions
+    - Funções são executadas por meio de SQL comuns:
+        - Na cláusula SELECT:
+            -- Atributos podem ser constantes ou sair da tabela 1
+            SELECT func1(atributo1) FROM tabela1;
+        - Na cláusula FROM (se a função devolve tuplas):
+            SELECT * FROM func1();
+        - Na cláusula WHERE
+            SELECT * FROM tabela1 WHERE func(atributo1) = 42;
+
+    - Temos 4 tipos de funções:
+        - Funções escritas em SQL
+        - Funções escritas em linguagens procedurais:
+            - PL/pgSQL, PL/Tcl, PL/php, PL/Java, etc.
+            - PL/pgSQL é a mais usada, pois parece com as do BD Oracle.
+            - As outras versões precisam ser instaladas como plugin.
+        - Funções internas (round(), now(), abs(), count(), etc)
+        - Funções na linguagem C
+        
+    - Exemplo: funções em SQL "puro"
+        CREATE OR REPLACE FUNCTION helloworld() RETURNS int
+        AS $$ SELECT 1 $$ LANGUAGE sql;
+        SELECT helloworld();
+        
+        CREATE OR REPLACE FUNCTION soma_numeros(IN nr1 in, IN nr2 int)
+        RETURNS int
+        AS $$ SELECT $1 + $2 $$ LANGUAGE sql;
+        SELECT soma_numeros(300,700) AS resposta;
+        
+        - Tipos dos parâmetros e do valor do retorno: tipos do SQL
+          (int, varchar, char, time, etc.)
+        - Parâmetros podem ser de entrada (IN), saída (OUT) ou 
+          entrada e saída (INOUT).
+        - Atribuitr nomes a parâmetros é opcional. É possível 
+          referenciar um parâmetro no corpo da função usando as
+          variáveis posicionais $1, $2, etc.
+        
+        - Podemos passar como parâmetro uma tupla de uma tabela, Nesse
+          caso, o tipo de parâmetro é o próprio nome da tabela.
+        - É possível gerar tuplas por meio da cláusula ROW.
+        
+        CREATE TEMP TABLE empregados (
+            nome TEXT, salario NUMERIC, idade INTEGER, baia POINT);
+        INSERT INT empregados VALUES('João", 2200, point('(1,1)'));
+        INSERT INT empregados VALUES('José", 4200, point('(2,1)'));
+        
+        CREATE FUNCTION dobrar_salario(empregados) RETURNS NUMERIC
+        AS $$ 
+            SELECT $1.salario * 2 AS salario;
+        $$ LANGUAGE SQL;
+        
+        -- Executada para cada tupla que for selecionada
+        SELECT nome, dobrar_salario(empregados.*) AS sonho
+        FROM empregados WHERE nome = 'João';
+        -- ou cria uma tupla com a função ROW
+        SELECT nome, dobrar_salario(ROW(nome,salario*1.1, idade, baia))
+            AS sonho FROM empregados;
+        
+        - Uma função também pode retornar um tipo composto (tupla)
+            CREATE OR REPLACE FUNCTION novo_empregado()
+            RETURNS empregados AS $$
+                SELECT TEXT 'Nenhum' AS nome, 1000.0 AS salario,
+                       25 AS idade, POINT '(2,2)' AS baia;
+            $$ LANGUAGE SQL;
+            -- ou
+            C
+            CREATE OR REPLACE FUNCTION novo_empregado()
+            RETURNS empregados AS $$
+                SELECT ROW('Nenhum', 1000.0, 25, '(2,2)');
+            $$ LANGUAGE SQL;
+        
+        - Tabelas temporárias (TEMP) são removidas pelo SGBD quando 
+          a conexão com o BD é encerrada.
+        - A chamada de função pode aparecer na cláusua FROM de uma
+          consulta
+        - É importante ressaltar que getteste devolve UMA SÓ TUPLA
+          (a primeira a ser selecionada)
+        
+        CREATE FUNCTION getteste(INT) RETURNS SETOF teste AS $$
+            SELECT * FROM teste WHERE numero = $1;
+        $$ LANGUAGE SQL;
+        
+        - Funções em SQL podem ser declaradas com parâmetros e valor de
+          retorno de tipos polimórgficos: anyelement e anyarray.
+        
+        CREATE FUNCTION constroi_matriz(anyelement,anyelement)
+        RETURNS anyarray AS $$
+            SELECT ARRAY[$1, $2];
+        $$ LANGUAGE SQL;
+        
+        -- ::text força o 'cast' para o tipo TEXT (porque, em geral,
+        -- seria interpretado como VARCHAR)
+        SELECT constroi_matriz(1,2) AS intarray,
+               constroi_matriz('a'::text, 'b') AS textarray;
+        
+        CREATE FUNCTION is_bigger(anyelement,anyelement)
+        RETURNS BOOLEAN AS $$
+            SELECT $1 > $2;
+        $$ LANGUAGE SQL;
+        SELECT is_bigger(1,2) AS maior;
+    
+    - Exemplo: funções em PL/pgSQL
+        
+        - É possívbel criar blocos, que definem diferentes 
+          escopos para as variáveis.
+        
+        CREATE FUNCTION func_escopo() RETURNS INTEGERA AS $$
+            DECLARE 
+                quantidade INTEGER := 30;
+            BEGIN
+                RAISE NOTICE 'Aqui a quantidade é %', quantidade;
+                quantidade := 50;
+                -- Criar um sub-bloco
+                DECLARE
+                    quantiade INTEGER := 80;
+                BEGIN
+                    RAISE NOTICE 'Aqui a quantidade é %', quantidade;
+                END;
+                RAISE NOTICE 'Aqui a quantidade é %', quantidade;
+                RETURN quantidade;
+            END;
+        $$ LANGUAGE plpgsql;
+        
+        - Há diferentes formas de se referenciar parâmetros
+          
+        CREATE FUNCTION func1(VARCHAR, INT) RETURNS INT AS $$
+            DECLARE
+                param1 ALIAS FOR $1; param2 ALIAS FOR $2;
+            BEGIN
+                RETURN length(param1) + param2;
+            END; 
+        $$ LANGUAGE plpgsql;
+        
+        CREATE FUNCTION func1(param1 VARCHAR, param2 INT) 
+        RETURNS INT AS $$
+            BEGIN
+                RETURN length(param1) + param2;
+            END; 
+        $$ LANGUAGE plpgsql;
+        
+        CREATE FUNCTION func1(VARCHAR, INT) RETURNS INT AS $$
+        DECLARE
+            param1 ALIAS FOR $1; param2 ALIAS FOR $2;
+        BEGIN
+            RETURN length(param1) + param2;
+        END; $$ LANGUAGE plpgsql;
+        
+        - Quando o tipo do retorno de uma função do PL/pgSQL é 
+          declarado como um tipo polimórfico (anyelement ou anyarray),
+          o parâmetro especial $0 é criado; seu tipo de dado é o 
+          "tipo de fato" do retorno da função.
+        
+        CREATE FUNCTION somar_tres_valores(v1 anyelement_
+        RETURNS anyelement AS $$
+            DECLARE
+                retorno ALIAS FOR $0;
+            BEGIN
+                resultado := v1 + v2 + v3;
+                RETURN resultado;
+            END;
+        $$ LANGUAGE plpgsql;
+        
+        - nome_tabela%ROWTYPE - permite criar uma variável do tipo
+          tupla, com o nome da tabela.
+
+        - Funções às vezes são criadas para controlar a manipulação
+          de dados
+        
+        - FOR ... LOOP: manipulação de cursores (semelhante à PSM)
+        - SETOF: para retornar conjunto de valores
+        
+        CREATE OR REPLACE FUNCTION nome_empregado(NUMERIC)
+        RETURNS SETOF TEXT AS $$
+            DECLARE
+                registro RECORD;
+            BEGIN
+                FOR registro IN SELECT * FROM empregados
+                                WHERE salario >= sal LOOP
+                    RETURN NEXT registro.nome;
+                END LOOP;
+                RETURN;
+            END;
+        ## LANGUAGE plpgsql;
+        SELECT * FROM nome_empregado (2200);
+        
+        - SETOF de um tipo composto: para retornar conjuntos 
+          de registros.
+        
+        CREATE TYPE salario_por_idade AS (idade INT, salario NUMERIC);
+        CREATE FUNCTION obtem_salarios()
+        RETURNS SETOF salario_por_idade AS $$
+            DECLARE 
+                registro RECORD;
+            BEGIN
+            END;
+        $$ LANGUAGE plpgsql;
