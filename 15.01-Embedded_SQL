@@ -1,0 +1,133 @@
+Embedded SQL
+==============
+
+* SQL em programas reais
+    - Neste curso, até o momento, nós vimos somente como a SQL é usada
+      em uma interface de consulta genérica - um ambiente onde
+      submetemos consultas.
+    - Porém, no mundo real, gostaríamos de usá-los dentro de uma
+      linguagem de programação.
+
+* Opções
+    - Código em uma linguagem especializada, armazenado no próprio BD
+      (ex: PSM, PL/PgSQL).
+    - Comandos SQL embutidos em uma linguagem hospedeira (ex: C).
+    - Ferramentas (APIs) de conexão que possibilidam que linguagens
+      convencionais acessam um BD (ex: CLI, JDBC, PHP/DB).
+
+* SQL Embutida
+    - Ideia principal: um pré-processador transforma comandos em SQL em
+      comandos da linguagem hospederia que conecta com o BD.
+    - Para o pré-processador identificar o comando, começamos toda
+      cláusula com EXEC SQL.
+
+* Variáveis compartilhadas
+    - Para conectar o código em SQL ao restante do programa, as partes
+      envolvidas preciam compartilhar algumas variáveis.
+    - Declarações de variáveis compartilhadas aparecem delimitadas:
+        EXEC SQL BEGIN DECLARE SECTION;
+            <declarações na linguagem hospedeira>
+        EXEC SQL END DECLARE SECTION;
+    
+    - Em SQL, o uso de variáveis compartilhadas deve vir precedido 
+      de um ':'
+        - Elas podem ser usadas como constantes fornecidas pelo programa
+          da linguagem hospedeira.
+        - Elas podem receber valores provenientes de comandos SQL.
+
+    - Ex: C + SQL
+        
+        EXEC SQL BEGIN DECLARE SECTION;
+            char aLanch[21], oRefri[21];
+            float oPreco;
+        EXEC SQL END DECLARE SECTION;
+        /* Obtenha valores para aLanch e oRefri */
+        EXEC SQL SELECT preço INTO :oPreco
+                 FROM   Vendas
+                 WHERE  nome_lanch = :aLanch 
+                   AND  nome_refri = :oRefri;
+
+    - Consultas embutidas
+        - Consultas embutidas possuem as mesmas limitações que stored
+          procedures no que se refere a cnsultas:
+            - SELECT-INTO para uma consulta garantidamente produz uma p
+              única tupla como resposta.
+            - Caso contrário, é preciso usar um cursor.
+                - Há pequenas direferças sintátidas entre cursodes da PSM
+                  e os da SQL embutida, mas as ideias principais são as
+                  mesmas.
+
+    - Comandos para Cursores
+        - Declare um cursor c com:
+            EXEC SQL DECLARE c CURSOR FRO <consulta>;
+        - Abra e fecha o cursor c com:
+            EXEC SQL OPEN CURSOR c;
+            EXEC SQL CLOSE CURSOR c;
+        - Recuperar dados de c com:
+            EXEC SSQL FETCH c INTO <variável>;
+    
+    - Ex:
+        EXEC SQL BEGIN DECLARE SECTION;
+            char oRefri[21]; float oPreco;
+        EXEC SQL END DECLARE SECTION;
+        /* Obtenha valores para aLanch e oRefri */
+        EXEC SQL DECLARE c CURSOR FOR
+            SELECT nome_refri, preço FROM Vendas
+            WHERE nome_lanch = 'Sujinho';
+        
+        EXEC SQL OPEN CURSOR c;
+        while(1) { /* Estilo C de laço e quebra */
+            EXEC SQL FETCH c
+            INTO :oRefri, oPreço;
+            if(NO_MORE_TUPLES) break;
+            /* formatar e imprimir oRefri e oPreço */
+        }
+        EXEC SQL CLOSE CURSOR c;
+
+    - Macro NO_MORE_TUPLES
+        - A macro NO_MORE_TUPLES é verdadeira se e somente se o FETCH
+          dalhar na tarefa de encontrar uma tupla.
+        - Pode ser definida como:
+            #define NO_MORE_TUPES !(strcmp(SQLSTATE,"02000");
+
+    - Scroll Cursors
+        - Com cursores definidos com a cláusula 'scroll', podemos
+          navegar pelas tuplas de outras formas.
+            EXEC SQL DECLARE c SCROLL CURSOR FOR
+                SELECT * FROM Vendas;
+        - Tipos de FETCH:
+            - FETCH FIRST, FETCH LAST
+            - FETCH NEXT, FETCH PRIOR
+            - FETCH RELATIVE i, FETCH RELATIVE -i
+            - FETCH ABSOLUTE i, FETCH ABSOLUTE -i
+        - Esses cursores exigem mais tempo de processamento que os
+          outros cursores.
+
+    - Proteção contra atualizações concorrentes
+        - Exemplo:
+            EXEC SQL DECLARE c INSENSITIVE CURSOR
+                FOR SELECT * FROM Vendas;
+        - A cláusula INSENSITIVE CURSOR garante que mudanças na relação
+          Vendas não afetarão o conjunto de tuplas "recuperadas" com o
+        - Cursores desse tipo costumam ser muito "custosos" em termos de
+          tempo.
+
+* SQL dinâmico
+    - Necessidade de SQL Dinâmico
+        - Muitas aplicações usam consultas específicas e comandos de
+          modificação para interagir com os BDs.
+            - O SGBD compila comandos EXEC SQL ... em chamadas e
+              procedimentos específicas e produz um programa (como
+              qualquer outro) na linguagem hospedeira que usa a
+              biblioteca.
+      
+    - Preparando uma consulta:
+        EXEC SQL PREPARE <nome-consulta> FROM <texto-da-consulta>;
+    - Executando uma consulta:
+        EXEC SQL EXECUTE <nome-consulta>;
+    - "Prepare" = ortimiza a consulta.
+    - Prepare uma vez, execute muitas vezes.
+    
+    - Execução imediata
+        - Se vamos executar a consulta apenas uma vez, podemos combinar
+          os passos de PREPARE e EXECUTE uma vez, com EXECUTE IMMEDIATE.

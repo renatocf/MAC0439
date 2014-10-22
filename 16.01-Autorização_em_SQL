@@ -1,0 +1,166 @@
+Autorização
+=============
+
+* Um sistema de arquivos associa certos privilégios aos objetos
+  (arquivos) que ele gerencia
+    - Geralmente: leitura, escrita e execução.
+* Um sistemas de arquivos identifica certos usuários aos quais
+  privilégios são garantidos:
+    - Geralmente: o proprietário, o usuário e todos os usuários.
+
+* A SQL mantém um conjunto mais detalahdo de privilégios sobre3 relações
+  que os mantidos por um sistema der arquivos tradicional.
+* São 9 privilégios no total, sendo que alguns deles podem ser
+  restringidos a uma coluna de uma relação.
+    - Ex: SELECT, INSERT, DELETE, UPDATE, REFERENCES, TRIGGER, EXECUTE.
+
+* Alguns pribilégios importantes em uma relação (tabela ou visão):
+    - SELECT = direito de acessar (ler) todas as colunas de uma relação
+        - Pode ser aplicado também só a alguns atributos
+    - INSERT = direito de inserir tuplas
+        - Pode ser aplicado também só a alguns atributos
+    - DELETE = direito de remover tuplas
+    - UPDATE = direito de modificar tuplas
+        - Pode ser aplicado também só a alguns atributos
+
+    - Ex: para o comando:
+        INSERT INTO Refrigerantes(nome)
+            SELECT nome_refri FROM Vendas
+            WHERE NOT EXISTS
+                (SELECT * FROM Refrigereantes
+                 WHERE nome = nome_refri);
+
+        - Precisamos dos privilégios 'SELECT' sobre Vendas e
+          Refrigerantes, e INSERT sobre Refrigerantes ou
+          Refrigerantes.nome.
+
+* Objetos do Banco de Dados
+    - As visões são uma forma de concedermos privilégios de forma
+      intermediária.
+    - Ex:
+        - Podemos não querer conceder o privilégio SELECT sobre
+          Empregado(nome,endereço,salário)
+        - Mas é mais seguro conceder a permissão de SELECT sobre:
+            CREATE VIEW EmpregadosSeguros AS
+                SELECT nome, endereço FROM Empregados;
+        - Consultas sobre EmpregadosSeguros não requer privilégios sobre
+          a tabela Empregados.
+
+* IDs de Autorização
+    - Um usuário é referenciado por meio de seu ID de autorização, 
+      geralmente seu login (como no PostgreSQL).
+    - Existe um ID de autorização chamado PUBLIC
+        - Conceder um privilégio ao PUBLIC torna-o disponível a qualquer
+          ID de autorização.
+
+* Concessão de Privilégios
+    - Um usuário tem todos os privilégios possíveis sobre um objeto que
+      foi criado por ele mesmo.
+    - Um usuário pode conceder priviléfios a outros usuários (IDs de
+      autorização), incluindo ao PUBLIC.
+    - Um usuário pode conceder pribilégios WITH GRANT OPTION, que
+      permitem que usuário que recebeu a "concessão" possa, por sua vez,
+      conceder privilégios a terceiros.
+
+* O comando GRANT
+    - Para conceder privilégios, usa-se:
+        GRANT <lista de privilégios>
+        ON <relação ou outro objeto>
+        TO <lista de IDs de autorização>;
+    - Se quiser que o receptor da concessão possa passar os privilétios
+      para parceiros, adicione ao final do comando: WITH GRANT OPTION
+
+    - Ex:
+        - Suponha que você é o proprietário de Vendas. Você pode fazer:
+            GRANT SELECT, UPDATE(preço)
+            ON Ventas TO Kelly;
+        - Agora, a Kelly tem o direito de executar qualquier consulta
+          sobre Vendas, mas apenas modificar uma tupla.
+
+        - Suponha que concedemos também:
+            GRANT UPDATE ON Vendas TO Kelly
+            WITH GRANT OPTION;
+        - Agora, a Kelly pode, além de modificar qualquer atributo em
+          Vendas, conceder a outros usuários o privilégio UPDATE sobre
+          Vendas.
+            - Isso significa também que ela pode conceder privilégios
+              mais específicos.
+
+        - Suponha que concedemops também:
+            GRANT UPDATE ON Ventas TO Kelly;
+        - Os privilégios se acumulam.
+
+* Revogando privilégios
+    - Para revogar privilégios, usa-se:
+        REVOKE <lista de privilégios>
+        ON <relação ou outro objeto>
+        TO <lista de IDs de autorização>;
+    - Depois desse comando, a sua concessão desses privilégios não pode
+      mais ser usada por esses usuários para justificar o uso deles do
+      privilégio.
+        - Mas eles podem continuar tendo o privilégio caso eles também
+          tenham obtido de algum outro usuário, de maneira independente.
+    - É possível "complementar" o comando REVOKE com:
+        1. CASCADE. Nesse caso, quaisquer concessão feitas pelo
+           revogador não serão mais válidas, não importa o quão longe o
+           privilégio tenha sido repassado.
+        2. RESTRICT. Nesse caso, se o privilégio tiver sido repassado a
+           outros, o comando REVOKE falhará com uma mensagem avisando
+           que algo mais tem que ser feito para "terminar com os
+           privilégios propagados".
+
+- Revogando a GRANT OPTION
+    - Para revogar o direito de dar permissões, temos:
+        REVOKE GRANT OPTION
+        FOR <lista de privilégios>
+        ON <relação ou outro objeto>
+        FROM <lista de IDs de autorização>;
+        [CASCADE|RESTRICT];
+
+* Grafo de autorização
+    - Nós = usuário/privilégio/"grant option"?/é proprietário?
+        - 'UPDATE ON R', 'UPDATE(a) ON  R' e 'UPDATE(b) ON R' ficam 
+          em nós diferentes.
+        - SELECT ON R e SELECT ON R WITH GRANT OPTION ficam em nós 
+          diferentes.
+    - Aresta X→Y significa que 'o nó X foi usado para conceder Y'.
+
+    - Ex:
+        
+        (AP**)-->(BP*)-->(CP*)
+           |
+           '------------>(CP)
+        
+        - A é dono do privilégio e pode concedê-los.
+        - A repassa P e o direito de concedê-lo (P*) para B.
+        - B repassa P* para C.
+        - A repassa P para C, mas sem o direito de concedê-lo.
+
+                .-------------.
+        (AP**)  |(BP*)-->(CP*)|     A executa
+           |    '-------------'     REVOKE P FROM B CASCADE;
+           '------------>(CP)
+
+        - Não apenas B perde P*, mas C perde P*. Remova BP* e CP*.
+        - Entretanto, C continua tendo P sem "grant option" por causa
+          da concessão direta.
+        - Ainda que C tenha passado P para B, ambos os nós serão 
+          cortados fora.
+
+    - Ex:
+        
+        - Mesmo que A revogue o direito de B, ele ainda poderá
+          funcionar por causa de C.
+        
+                .--------------.       .---------------------.
+                |       A      |       |         B           |
+                | SELECT Venda | ====> | SELECT(refri) Venda |
+                |       **     |       |                     |
+                '--------------'       '---------------------'
+                       ||                        /\
+                       \/                        ||
+                .--------------.                 ||
+                |       C      |                 ||
+                | SELECT Venda |=================''
+                |       *      |
+                '--------------'
